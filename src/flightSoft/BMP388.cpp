@@ -67,6 +67,7 @@ void BMP388::calib(){
 
 altiValues_t BMP388::getMeasure(){
   altiValues_t altiValues;
+  altiValues.tstp = millis();
   altiValues.p=getP();
   altiValues.t=getT();
   altiValues.altitude=getAltitude(altiValues.p,altiValues.t);

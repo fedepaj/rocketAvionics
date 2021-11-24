@@ -20,10 +20,12 @@
 #define DSO32_REG_OUTX_L_A 0x28 //primo byte accelerometro, 6 in totale 3x2
 
 typedef struct {
+  unsigned long tstp;
   float x,y,z; //in rad/s
 } gyroValues_t;
 
 typedef struct {
+  unsigned long tstp;
   float x,y,z; //in m/ss
 } accValues_t;
 

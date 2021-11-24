@@ -66,6 +66,7 @@ gyroValues_t DSO32::getGyro(){
   gyroValues.x = rawGyroX * dso32BitToRadSec;
   gyroValues.y = rawGyroY * dso32BitToRadSec;
   gyroValues.z = rawGyroZ * dso32BitToRadSec;
+  gyroValues.tstp = millis();
   return gyroValues;
 }
 
@@ -82,7 +83,7 @@ accValues_t DSO32::getAcc(){
   int16_t rawAccX = buff[1] << 8 | buff[0];
   int16_t rawAccY = buff[3] << 8 | buff[2];
   int16_t rawAccZ = buff[5] << 8 | buff[4];
-
+  accValues.tstp = millis();
   accValues.x = rawAccX * dso32BitToMss;
   accValues.y = rawAccY * dso32BitToMss;
   accValues.z = rawAccZ * dso32BitToMss;

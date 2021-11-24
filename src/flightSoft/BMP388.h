@@ -32,7 +32,8 @@ typedef struct{
 } calibData_t;
 
 typedef struct{
-   float p, t, altitude;
+  unsigned long tstp;
+  float p, t, altitude;
 } altiValues_t;
 
 class BMP388
