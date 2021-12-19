@@ -23,10 +23,9 @@
 
 typedef enum {
   ON_PAD,
-  ASCEND,
-  APOGEE,
-  DESCEND,
-  END
+  ASCENT,
+  DESCENT,
+  LANDED
 } flightState_t;
 
 flightState_t state = ON_PAD;
@@ -221,19 +220,24 @@ void loop() {
   
   switch(state){
     case ON_PAD:
-      // Accendi led per capire che siamo pronti
-      state=ASCEND;
+      if(){  //launch condition met
+        
+        state=ASCENT;
+      }
       break;
-    case ASCEND:
-      state=APOGEE;
+    case ASCENT:
+    if(){  //apogee condition met
+        
+        state=DESCENT;
+      }
       break;
-    case APOGEE:
-      state=DESCEND;
+    case DESCENT:
+    if(){  //landing condition met
+        
+        state=LANDED;
+      }
       break;
-    case DESCEND:
-      state=END;
-      break;
-    case END:
+    case LANDED:
       //Remember to save the remain of the buffers bf closing
       //Remember to close the file buffers
       break;
