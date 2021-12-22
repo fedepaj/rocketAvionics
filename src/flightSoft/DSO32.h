@@ -22,11 +22,13 @@
 typedef struct {
   unsigned long tstp;
   float x,y,z; //in rad/s
+  float mod,filtGyro;
 } gyroValues_t;
 
 typedef struct {
   unsigned long tstp;
   float x,y,z; //in m/ss
+  float mod,filtAcc;
 } accValues_t;
 
 class DSO32
@@ -34,8 +36,8 @@ class DSO32
   public:
     DSO32(int csPin, int intGyroPin, int intAccPin, int spiSpeed);
     int setup();
-    gyroValues_t getGyro();
-    accValues_t getAcc();
+    gyroValues_t getGyro(float prev, float filtPrev);
+    accValues_t getAcc(float prev, float filtPrev);
   private:
     int _csPin;
     int _intAccPin;

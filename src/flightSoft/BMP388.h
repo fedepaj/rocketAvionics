@@ -34,6 +34,7 @@ typedef struct{
 typedef struct{
   unsigned long tstp;
   float p, t, altitude;
+  float filtAlti;
 } altiValues_t;
 
 class BMP388
@@ -44,7 +45,7 @@ class BMP388
     float getP();
     float getT();
     float getAltitude(float p,float t);
-    altiValues_t getMeasure();
+    altiValues_t getMeasure(float prec, float filtPrec);
   private:
     const float seaLevelPressure = 101325; // in Pa
     calibData_t calibData;

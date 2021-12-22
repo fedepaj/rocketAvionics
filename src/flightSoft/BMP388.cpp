@@ -65,12 +65,13 @@ void BMP388::calib(){
 }
 
 
-altiValues_t BMP388::getMeasure(){
+altiValues_t BMP388::getMeasure(float prec, float filtPrec){
   altiValues_t altiValues;
   altiValues.tstp = millis();
   altiValues.p=getP();
   altiValues.t=getT();
   altiValues.altitude=getAltitude(altiValues.p,altiValues.t);
+  altiValues.filtAlti=0.90476*filtPrec+0.04761*altiValues.altitude+0.04761*prec;
   return altiValues;
 }
 

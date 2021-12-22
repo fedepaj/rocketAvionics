@@ -49,7 +49,7 @@ int DSO32::setup(){
   return 0; // the return value of the setup function will be used for error handling
 }
 
-gyroValues_t DSO32::getGyro(){
+gyroValues_t DSO32::getGyro(float prev, float filtPrev){
   gyroValues_t gyroValues;
   byte buff[6];
   SPI.beginTransaction(SPISettings(_spiSpeed, MSBFIRST, SPI_MODE3));
@@ -67,10 +67,12 @@ gyroValues_t DSO32::getGyro(){
   gyroValues.y = rawGyroY * dso32BitToRadSec;
   gyroValues.z = rawGyroZ * dso32BitToRadSec;
   gyroValues.tstp = millis();
+  gyroValues.mod=sqrt(pow(gyroValues.x,2)+pow(gyroValues.y,2)+pow(gyroValues.z,2));
+  gyroValues.filtGyro=0.90476*filtPrev+0.04761* gyroValues.mod+0.04761*prev;
   return gyroValues;
 }
 
-accValues_t DSO32::getAcc(){
+accValues_t DSO32::getAcc(float prev, float filtPrev){
   accValues_t accValues;
   byte buff[6];
   SPI.beginTransaction(SPISettings(_spiSpeed, MSBFIRST, SPI_MODE3));
@@ -87,5 +89,7 @@ accValues_t DSO32::getAcc(){
   accValues.x = rawAccX * dso32BitToMss;
   accValues.y = rawAccY * dso32BitToMss;
   accValues.z = rawAccZ * dso32BitToMss;
+  accValues.mod=sqrt(pow(accValues.x,2)+pow(accValues.y,2)+pow(accValues.z,2));
+  accValues.filtAcc=0.90476*filtPrev+0.04761*accValues.mod+0.04761*prev;
   return accValues;
 }

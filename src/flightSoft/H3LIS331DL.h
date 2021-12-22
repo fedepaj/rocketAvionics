@@ -1,5 +1,5 @@
-#ifndef H3LIS331DL
-#define H3LIS331DL
+#ifndef H3LIS331DL_H
+#define H3LIS331DL_H
 
 #include <SPI.h>
 
@@ -12,22 +12,22 @@
 
 
 typedef struct {
-	unsigned long tstp;
-	float x,y,z;
+  unsigned long tstp;
+  float x,y,z;
 } highAccValues_t;
 
 class H3LIS331DL
 {
-	public:
-		H3LIS331DL(int csPin, int intAccPin, int spiSpeed);
-		int setup();
-		highAccValues_t getAcc();
-	private:
-		int _csPin;
-		int _intAccPin;
-		int _spiSpeed;
-		const float h3lis331dlBitToMss = 97.7 * 9.81 / 1000;
-		int16_t rawAccX, rawAccY, rawAccZ;
+  public:
+    H3LIS331DL(int csPin, int intAccPin, int spiSpeed);
+    int setup();
+    highAccValues_t getAcc();
+  private:
+    int _csPin;
+    int _intAccPin;
+    int _spiSpeed;
+    const float h3lis331dlBitToMss = 97.65 * 9.81 / 1000;
+    int16_t rawAccX, rawAccY, rawAccZ;
 };
 
 #endif
