@@ -39,11 +39,16 @@ void setup() {
 //  attachInterrupts
   setup_sensors();
   logger.setup();
-  
+  #ifdef BMP388_ON
   attachInterrupt(digitalPinToInterrupt(BMP388_INT), altimeterCB, RISING);
+  #endif
+  #if defined(DSO32_ON) || defined(ISM330_ON)
   attachInterrupt(digitalPinToInterrupt(DSO32_INT_ACC), accCB, RISING);
   attachInterrupt(digitalPinToInterrupt(DSO32_INT_GYRO), gyroCB, RISING);
+  #endif
+  #ifdef H3LIS331DL_ON
   attachInterrupt(digitalPinToInterrupt(H3LIS331DL_INT), hf_accCB, RISING);
+  #endif
   Serial.println("Interrupts setted up.");
   Serial.println("---");
   
@@ -83,7 +88,7 @@ void loop() {
       break;
     }
   }
-
+#ifdef BMP388_ON
 void altimeterCB(){
   if(sizeof(buffers.altimeter)==0){
     altiValues_t v = {};
@@ -91,7 +96,8 @@ void altimeterCB(){
   }
   buffers.altimeter.push_back(altimeter.measure(buffers.altimeter.back()));
 }
-
+#endif
+#if defined(DSO32_ON) || defined(ISM330_ON)
 void gyroCB(){
   if(sizeof(buffers.gyro)==0){
     imu_values v = {};
@@ -107,7 +113,8 @@ void accCB(){
   }
   buffers.acc.push_back(imu.measureAcc(buffers.acc.back()));
 }
-
+#endif
+#ifdef H3LIS331DL_ON
 void hf_accCB(){
   if(sizeof(buffers.hf_acc)==0){
     hf_imu_values v = {};
@@ -115,3 +122,4 @@ void hf_accCB(){
   }
   buffers.hf_acc.push_back(hf_acc.measure(buffers.hf_acc.back()));
 }
+#endif

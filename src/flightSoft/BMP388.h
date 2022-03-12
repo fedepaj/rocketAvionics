@@ -18,6 +18,7 @@
 #include <SPI.h>
 #include <string>
 #include <sstream>
+
 typedef struct{
   double par_t1;
   double par_t2;
