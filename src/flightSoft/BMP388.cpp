@@ -3,20 +3,20 @@
 /***********************************************************************************************
  * FUNZIONI PER IL BAROMETRO
  */
-BMP388::BMP388(int csPin, int intPin, int spiSpeed){
-  _spiSpeed=spiSpeed;
-  _intPin=intPin;
-  _csPin=csPin;
-}
+
 
 int BMP388::setup(){
-  SPI.beginTransaction(SPISettings(_spiSpeed, MSBFIRST, SPI_MODE3));
-  digitalWrite(_csPin, LOW);
+  pinMode(BMP388_CS, OUTPUT);
+  pinMode(BMP388_INT, INPUT);
+  digitalWrite(BMP388_CS, HIGH);
+  
+  SPI.beginTransaction(SPISettings(BMP388_SPI_SPEED, MSBFIRST, SPI_MODE3));
+  digitalWrite(BMP388_CS, LOW);
   //impostazioni
   byte settingsBuff[10] = {BMP388_REG_INT_CTRL, 0b01000010, BMP388_REG_PWR_CTRL, 0b00110011,
                             BMP388_REG_OSR, 0b00000011, BMP388_REG_ODR, 0x02, BMP388_REG_CONFIG, 0x02,};
   SPI.transfer(settingsBuff, 10);
-  digitalWrite(_csPin, HIGH);
+  digitalWrite(BMP388_CS, HIGH);
   SPI.endTransaction();
 
   BMP388::calib();
@@ -24,13 +24,13 @@ int BMP388::setup(){
 }
 
 void BMP388::calib(){
-  SPI.beginTransaction(SPISettings(_spiSpeed, MSBFIRST, SPI_MODE3));
-  digitalWrite(_csPin, LOW);
+  SPI.beginTransaction(SPISettings(BMP388_SPI_SPEED, MSBFIRST, SPI_MODE3));
+  digitalWrite(BMP388_CS, LOW);
   byte buff[21];
   SPI.transfer(0x31 | 0b10000000);
   SPI.transfer(0x00);
   SPI.transfer(buff, 21);
-  digitalWrite(_csPin, HIGH);
+  digitalWrite(BMP388_CS, HIGH);
   SPI.endTransaction();
 
   uint16_t REG_par_t1 = buff[1] << 8 | buff[0];
@@ -65,30 +65,41 @@ void BMP388::calib(){
 }
 
 
-altiValues_t BMP388::getMeasure(float prec, float filtPrec){
+altiValues_t BMP388::measure(altiValues_t filtPrec){
   altiValues_t altiValues;
   altiValues.tstp = millis();
   altiValues.p=getP();
   altiValues.t=getT();
   altiValues.altitude=getAltitude(altiValues.p,altiValues.t);
-  altiValues.filtAlti=0.90476*filtPrec+0.04761*altiValues.altitude+0.04761*prec;
+  float R=1;
+  float Q=1e-05;
+  float p=1.0;
+
+  //filtro di Kalman
+  float Pp=p+Q;
+  //xp=x;
+  float K=Pp/(Pp+R);
+  float e=altiValues.altitude-filtPrec.filtAlti;
+  p=(1-K)*Pp;
+  altiValues.filtAlti=filtPrec.filtAlti+K*e;
+  //altiValues.filtAlti=0.90476*filtPrec+0.04761*altiValues.altitude+0.04761*prec;
   return altiValues;
 }
 
 
 
 float BMP388::getAltitude(float p, float t){
- float alti = ((float)powf(seaLevelPressure / p, 0.190223f) - 1.0f) * (t + 273.15f) / 0.0065f;
+ float alti = ((float)powf(SEA_LEVEL_PRESSURE / p, 0.190223f) - 1.0f) * (t + 273.15f) / 0.0065f;
  return alti;
 }
 
 float BMP388::getP(){
   byte buff[4];
-  SPI.beginTransaction(SPISettings(_spiSpeed, MSBFIRST, SPI_MODE3));
-  digitalWrite(_csPin, LOW);
+  SPI.beginTransaction(SPISettings(BMP388_SPI_SPEED, MSBFIRST, SPI_MODE3));
+  digitalWrite(BMP388_CS, LOW);
   SPI.transfer(BMP388_REG_OUTP | 0b10000000);
   SPI.transfer(buff,4);
-  digitalWrite(_csPin, HIGH);
+  digitalWrite(BMP388_CS, HIGH);
   SPI.endTransaction();
   rawPressure = buff[3] <<16 | (buff[2] << 8 | buff[1]);
   return compensateP(rawPressure);
@@ -96,11 +107,11 @@ float BMP388::getP(){
 
 float BMP388::getT(){
   byte buff[4];
-  SPI.beginTransaction(SPISettings(_spiSpeed, MSBFIRST, SPI_MODE3));
-  digitalWrite(_csPin, LOW);
+  SPI.beginTransaction(SPISettings(BMP388_SPI_SPEED, MSBFIRST, SPI_MODE3));
+  digitalWrite(BMP388_CS, LOW);
   SPI.transfer(BMP388_REG_OUTT | 0b10000000);
   SPI.transfer(buff,4);
-  digitalWrite(_csPin, HIGH);
+  digitalWrite(BMP388_CS, HIGH);
   SPI.endTransaction();
   rawTemp = buff[3] <<16 | (buff[2] << 8 | buff[1]);
   return compensateT(rawTemp);

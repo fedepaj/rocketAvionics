@@ -1,7 +1,18 @@
 #ifndef DSO32_H
 #define DSO32_H
 
+#define DSO32_CS 10
+#define DSO32_INT_GYRO 40
+#define DSO32_INT_ACC 41
+#define DSO32_SPI_SPEED 1000000
+
 #include <SPI.h>
+#include "settings.h"
+
+#define DATA_RATE 833 //uguale per accelerometro e giroscopio
+
+#define ACC_FS 16 // 2(solo ism330), 4, 8, 16, 32(solo dso32)
+#define GYRO_FS 2000 //250, 500, 1000. 2000, 4000(solo ism330)
 
 #define DSO32_REG_INT1_CTRL 0x0D
 #define DSO32_REG_INT2_CTRL 0x0E
@@ -19,34 +30,118 @@
 #define DSO32_REG_OUTX_L_G 0x22 //primo byte giroscopio, 6 in totale 3x2
 #define DSO32_REG_OUTX_L_A 0x28 //primo byte accelerometro, 6 in totale 3x2
 
-typedef struct {
-  unsigned long tstp;
-  float x,y,z; //in rad/s
-  float mod,filtGyro;
-} gyroValues_t;
+#if DATA_RATE == 104
+#define DATA_RATE_VALUE 0b01000000
+#endif
+#if DATA_RATE == 208
+#define DATA_RATE_VALUE 0b01010000
+#endif
+#if DATA_RATE == 416
+#define DATA_RATE_VALUE 0b01100000
+#endif
+#if DATA_RATE == 833
+#define DATA_RATE_VALUE 0b01110000
+#endif
+#if DATA_RATE == 1666
+#define DATA_RATE_VALUE 0b10000000
+#endif
+#if DATA_RATE == 3332
+#define DATA_RATE_VALUE 0b10010000
+#endif
+#if DATA_RATE == 6664
+#define DATA_RATE_VALUE 0b10100000
+#endif
+//quando uso ism330
+#ifdef ISM330_ON
+
+#if ACC_FS == 2
+#define ACC_FS_VALUE 0b0000
+#define ACC_SENS 0.061
+#endif
+#if ACC_FS == 4
+#define ACC_FS_VALUE 0b1000
+#define ACC_SENS 0.122
+#endif
+#if ACC_FS == 8
+#define ACC_FS_VALUE 0b1100
+#define ACC_SENS 0.244
+#endif
+#if ACC_FS == 16
+#define ACC_FS_VALUE 0b0100
+#define ACC_SENS 0.488
+#endif
+
+#endif
+//quando uso dso32
+#ifdef DSO32_ON
+
+#if ACC_FS == 4
+#define ACC_FS_VALUE 0b0000
+#define ACC_SENS 0.122
+#endif
+#if ACC_FS == 8
+#define ACC_FS_VALUE 0b1000
+#define ACC_SENS 0.244
+#endif
+#if ACC_FS == 16
+#define ACC_FS_VALUE 0b1100
+#define ACC_SENS 0.488
+#endif
+#if ACC_FS == 32
+#define ACC_FS_VALUE 0b0100
+#define ACC_SENS 0.976
+#endif
+
+#endif
+
+#if GYRO_FS == 250
+#define GYRO_FS_VALUE 0b0000
+#define GYRO_SENS 8.75
+#endif
+#if GYRO_FS == 500
+#define GYRO_FS_VALUE 0b0100
+#define GYRO_SENS 17.50
+#endif
+#if GYRO_FS == 1000
+#define GYRO_FS_VALUE 0b1000
+#define GYRO_SENS 35
+#endif
+#if GYRO_FS == 2000
+#define GYRO_FS_VALUE 0b1100
+#define GYRO_SENS 70
+#endif
+#if GYRO_FS == 4000
+#define GYRO_FS_VALUE 0b0001
+#define GYRO_SENS 140
+#endif
+
+//variabili per convertire i valori letti dal sensore in SI, il primo valore delle espressioni dipende dalla scala vedi il datasheet
+#define DSO32_BIT_2_RAD_SEC GYRO_SENS * (PI/180) / 1000; //valido per 2000dps
+#define DSO32_BIT_2_MSS ACC_SENS * 9.80665 /1000; //valido per 32g, pare che g a roma sia 9.80353 o 9.80322
+
+#include <SPI.h>
+#include <string>
+#include <sstream>
 
 typedef struct {
-  unsigned long tstp;
-  float x,y,z; //in m/ss
-  float mod,filtAcc;
-} accValues_t;
+  unsigned long tstp = 0;
+  float x,y,z = 0; //in rad/s for gyro and in m/ss for acc
+  float mod = 0;
+  float filt = 0;
+  std::string toString() {
+    std::ostringstream ss;
+    ss << tstp << "," << x << "," << y << "," << z << "," << mod << "," << filt;
+    std::string s(ss.str());
+    return s;
+  }
+} imu_values;
 
 class DSO32
 {
   public:
-    DSO32(int csPin, int intGyroPin, int intAccPin, int spiSpeed);
     int setup();
-    gyroValues_t getGyro(float prev, float filtPrev);
-    accValues_t getAcc(float prev, float filtPrev);
-  private:
-    int _csPin;
-    int _intAccPin;
-    int _intGyroPin;
-    int _spiSpeed;
-    //variabili per convertire i valori letti dal sensore in SI, il primo valore delle espressioni dipende dalla scala vedi il datasheet
-    const float dso32BitToRadSec =  70 * (PI/180) / 1000; //valido per 2000dps
-    const float dso32BitToMss = 0.976 * 9.80665 /1000; //valido per 32g, pare che g a roma sia 9.80353 o 9.80322
-    int16_t rawAccX, rawAccY, rawAccZ, rawGyroX, rawGyroY, rawGyroZ;
+    imu_values measureGyro(imu_values prec);
+    imu_values measureAcc(imu_values prec);
 };
 
 #endif

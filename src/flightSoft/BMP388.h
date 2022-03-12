@@ -1,7 +1,9 @@
 #ifndef BMP388_H
 #define BMP388_H
 
-#include <SPI.h>
+#define BMP388_CS 19
+#define BMP388_INT 20
+#define BMP388_SPI_SPEED 1000000
 
 #define BMP388_REG_WHO_AM_I 0x00
 #define BMP388_REG_STATUS 0x03
@@ -12,7 +14,10 @@
 #define BMP388_REG_OSR 0x1C  //00001010  oversampling press 2x  temp 2x
 #define BMP388_REG_ODR 0x1D  //00000001  100Hz
 #define BMP388_REG_CONFIG 0x1F  //00000010 iir filter coeff 1
-
+#define SEA_LEVEL_PRESSURE 101325 // in Pa
+#include <SPI.h>
+#include <string>
+#include <sstream>
 typedef struct{
   double par_t1;
   double par_t2;
@@ -32,29 +37,32 @@ typedef struct{
 } calibData_t;
 
 typedef struct{
-  unsigned long tstp;
-  float p, t, altitude;
-  float filtAlti;
+  unsigned long tstp = 0;
+  float p = 0; 
+  float t = 0;
+  float altitude = 0;
+  float filtAlti = 0;
+  std::string toString() {
+    std::ostringstream ss;
+    ss << tstp << "," << p << "," << t << "," << altitude << "," << filtAlti;
+    std::string s(ss.str());
+    return s;
+  }
 } altiValues_t;
 
 class BMP388
 {
   public:
-    BMP388(int csPin, int intPin, int spiSpeed);
     int setup();
     float getP();
     float getT();
     float getAltitude(float p,float t);
-    altiValues_t getMeasure(float prec, float filtPrec);
+    altiValues_t measure(altiValues_t prec);
   private:
-    const float seaLevelPressure = 101325; // in Pa
     calibData_t calibData;
     uint32_t rawPressure, rawTemp;
     float pressure; //in Pa
     float temp; //in C
-    int _csPin;
-    int _intPin;
-    int _spiSpeed;
     void calib();
     float compensateT(uint32_t uncomp_temp);
     float compensateP(uint32_t uncomp_press);

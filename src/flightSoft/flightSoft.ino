@@ -1,51 +1,49 @@
-#include "Logger.h"
-
-#define RED_LED 8
-#define GREEN_LED 28
+#include "flightSoft.h"
 
 Logger logger;
+#ifdef BMP388_ON
+BMP388 altimeter;
+#endif
+#if defined(DSO32_ON) || defined(ISM330_ON)
+DSO32 imu;
+#endif
+#ifdef H3LIS331DL_ON
+H3LIS331DL hf_acc;
+#endif
 
-typedef enum {
-  ON_PAD,
-  ASCENT,
-  DESCENT,
-  LANDED
-} flightState_t;
 
-flightState_t state = ON_PAD;
+EXTMEM struct Buffers buffers;
+
+EXTMEM State state = {};
+
+void setup_sensors(){
+    #ifdef BMP388_ON
+    altimeter.setup();
+    #endif
+    #if defined(DSO32_ON) || defined(ISM330_ON)
+    imu.setup();
+    #endif
+    #ifdef H3LIS331DL_ON
+    hf_acc.setup();
+    #endif
+}
 
 void setup() {
+  
   Serial.begin(512000);
-  
-  logger.init();
 
-  pinMode(H3LIS331DL_CS, OUTPUT);
-  pinMode(H3LIS331DL_INT, INPUT);
-  pinMode(DSO32_CS, OUTPUT);
-  pinMode(DSO32_INT_GYRO, INPUT);
-  pinMode(DSO32_INT_ACC, INPUT);
-  pinMode(BMP388_CS, OUTPUT);
-  pinMode(BMP388_INT, INPUT);
-  pinMode(GREEN_LED,OUTPUT);
-  pinMode(RED_LED,OUTPUT);
 
-  digitalWrite(H3LIS331DL_CS, HIGH);
-  digitalWrite(DSO32_CS, HIGH);
-  digitalWrite(BMP388_CS, HIGH);
-  Serial.println("Pins setted up.");
-  
-  SPI1.setMISO(39);
-  SPI1.begin();
-  
-  SPI.begin();
-  
+
+//  logger.init();
   Serial.println("Sensors setted up.");
-  //attachInterrupts
+//  attachInterrupts
+  setup_sensors();
+  logger.setup();
   
-  attachInterrupt(digitalPinToInterrupt(H3LIS331DL_INT), highAccMeasure, RISING);
-  attachInterrupt(digitalPinToInterrupt(DSO32_INT_ACC), accMeasure, RISING);
-  attachInterrupt(digitalPinToInterrupt(DSO32_INT_GYRO), gyroMeasure, RISING);
-  attachInterrupt(digitalPinToInterrupt(BMP388_INT), altimeterMeasure, RISING);
+  attachInterrupt(digitalPinToInterrupt(BMP388_INT), altimeterCB, RISING);
+  attachInterrupt(digitalPinToInterrupt(DSO32_INT_ACC), accCB, RISING);
+  attachInterrupt(digitalPinToInterrupt(DSO32_INT_GYRO), gyroCB, RISING);
+  attachInterrupt(digitalPinToInterrupt(H3LIS331DL_INT), hf_accCB, RISING);
   Serial.println("Interrupts setted up.");
   Serial.println("---");
   
@@ -54,17 +52,19 @@ void setup() {
 }
 
 void loop() {
-  logger.save();
+//  logger.save();
   
   
-   switch(state){
+   switch(state.state){
     case ON_PAD:
      // if(){  //launch condition met
         
-     //   state=ASCENT;
+      state.state=ASCENT;
+      state.tstp = millis();
      // }
       break;
     case ASCENT:
+    
     //if(){  //apogee condition met
         
       //  state=DESCENT;
@@ -77,24 +77,41 @@ void loop() {
      // }
       //break;
     case LANDED:
+      logger.save(&buffers);
       //Remember to save the remain of the buffers bf closing
       //Remember to close the file buffers
       break;
     }
   }
 
-void accMeasure(){
-  logger.accMeasure();
+void altimeterCB(){
+  if(sizeof(buffers.altimeter)==0){
+    altiValues_t v = {};
+    buffers.altimeter.push_back(v);
+  }
+  buffers.altimeter.push_back(altimeter.measure(buffers.altimeter.back()));
 }
 
-void gyroMeasure(){
-  logger.gyroMeasure();
+void gyroCB(){
+  if(sizeof(buffers.gyro)==0){
+    imu_values v = {};
+    buffers.gyro.push_back(v);
+  }
+  buffers.gyro.push_back(imu.measureGyro(buffers.gyro.back()));
 }
 
-void altimeterMeasure(){
-  logger.altimeterMeasure();
+void accCB(){
+  if(sizeof(buffers.acc)==0){
+    imu_values v = {};
+    buffers.acc.push_back(v);
+  }
+  buffers.acc.push_back(imu.measureAcc(buffers.acc.back()));
 }
 
-void highAccMeasure(){
-  logger.highAccMeasure();
+void hf_accCB(){
+  if(sizeof(buffers.hf_acc)==0){
+    hf_imu_values v = {};
+    buffers.hf_acc.push_back(v);
+  }
+  buffers.hf_acc.push_back(hf_acc.measure(buffers.hf_acc.back()));
 }
