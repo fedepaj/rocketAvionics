@@ -10,7 +10,6 @@ int DSO32::setup(){
   pinMode(DSO32_INT_ACC, INPUT);
 
   digitalWrite(DSO32_CS, HIGH);
-  SPI.begin();
   
   SPI.beginTransaction(SPISettings(DSO32_SPI_SPEED, MSBFIRST, SPI_MODE3));
   digitalWrite(DSO32_CS, LOW);
@@ -43,14 +42,16 @@ int DSO32::setup(){
   SPI.transfer(laller, 3);
   digitalWrite(DSO32_CS, HIGH);
   SPI.endTransaction();
-  //Serial.print("valori interrupt: ");
-  //Serial.print(laller[1], BIN);
-  //Serial.print("   ");
-  //Serial.println(laller[2], BIN);
+  
+//  Serial.print("valori interrupt: ");
+//  Serial.print(laller[1], BIN);
+//  Serial.print("   ");
+//  Serial.println(laller[2], BIN);
   return 0; // the return value of the setup function will be used for error handling
 }
 
 imu_values DSO32::measureGyro(imu_values prec){
+  Serial.println("QUI");
   imu_values values;
   byte buff[6];
   SPI.beginTransaction(SPISettings(DSO32_SPI_SPEED, MSBFIRST, SPI_MODE3));
@@ -59,7 +60,8 @@ imu_values DSO32::measureGyro(imu_values prec){
   SPI.transfer(buff,6);
   digitalWrite(DSO32_CS, HIGH);
   SPI.endTransaction();
-
+  Serial.println("QUI2");
+  
   int16_t rawGyroX = buff[1] << 8 | buff[0];
   int16_t rawGyroY = buff[3] << 8 | buff[2];
   int16_t rawGyroZ = buff[5] << 8 | buff[4];
@@ -67,12 +69,15 @@ imu_values DSO32::measureGyro(imu_values prec){
   values.x = rawGyroX * DSO32_BIT_2_RAD_SEC;
   values.y = rawGyroY * DSO32_BIT_2_RAD_SEC;
   values.z = rawGyroZ * DSO32_BIT_2_RAD_SEC;
+  
   values.tstp = millis();
+  
   values.mod=sqrt(pow(values.x,2)+pow(values.y,2)+pow(values.z,2));
+  
   float R=1.0;
   float Q=1e-05;
   float p=1.0;
-
+  Serial.println("QUI3");
   //filtro di Kalman
   float Pp=p+Q;
   //xp=x;
@@ -80,6 +85,7 @@ imu_values DSO32::measureGyro(imu_values prec){
   float e=values.mod-prec.filt;
   p=(1-K)*Pp;
   values.filt=prec.filt+K*e;
+  Serial.println("GYRO: " + String(values.toString().c_str()));
   return values;
 //  gyroValues.filtGyro=0.90476*prec.filtAcc+0.04761* gyroValues.mod+0.04761*prev;
 }

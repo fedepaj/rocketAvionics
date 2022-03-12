@@ -1,9 +1,15 @@
-#define DSO32_ON
-//#define ISM330_ON
-#define BMP388_ON
-#define H3LIS331DL_ON
+#define __DSO32__
+//#define __ISM330__
+#define __BMP388__
+//#define __H3LIS331DL__
 #define LOGGING
-//#define DEBUG
+#define __DEBUG__
+
+#ifdef __DEBUG__
+#define DEBUG(...) Serial.println(__VA_ARGS__)
+#else
+#define DEBUG(...)
+#endif
 
 
 #define BOARD_READY digitalWrite(GREEN_LED,HIGH)
@@ -12,13 +18,13 @@
 #include <vector>
 
 
-#ifdef BMP388_ON
+#ifdef __BMP388__
 #include "BMP388.h"
 #endif
-#if defined(DSO32_ON) || defined(ISM330_ON)
+#if defined(__DSO32__) || defined(__ISM330__)
 #include "DSO32.h"
 #endif
-#ifdef H3LIS331DL_ON
+#ifdef __H3LIS331DL__
 #include "H3LIS331DL.h"
 #endif
 

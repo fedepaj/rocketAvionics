@@ -1,30 +1,39 @@
 #include "flightSoft.h"
 
+#ifdef LOGGING
 Logger logger;
-#ifdef BMP388_ON
+#endif
+#ifdef __BMP388__
 BMP388 altimeter;
 #endif
-#if defined(DSO32_ON) || defined(ISM330_ON)
+
+#if defined(__DSO32__) || defined(__ISM330__)
 DSO32 imu;
 #endif
-#ifdef H3LIS331DL_ON
+
+#ifdef __H3LIS331DL__
 H3LIS331DL hf_acc;
 #endif
-
 
 EXTMEM struct Buffers buffers;
 
 EXTMEM State state = {};
 
 void setup_sensors(){
-    #ifdef BMP388_ON
+
+    #ifdef __BMP388__
     altimeter.setup();
+    DEBUG("Altimeter setted up.");
     #endif
-    #if defined(DSO32_ON) || defined(ISM330_ON)
+    
+    #if defined(__DSO32__) || defined(__ISM330__)
     imu.setup();
+    DEBUG("Imu setted up.");
     #endif
-    #ifdef H3LIS331DL_ON
+    
+    #ifdef __H3LIS331DL__
     hf_acc.setup();
+    DEBUG("HF imu setted up.");
     #endif
 }
 
@@ -32,25 +41,28 @@ void setup() {
   
   Serial.begin(512000);
 
-
+  SPI.begin();
 
 //  logger.init();
-  Serial.println("Sensors setted up.");
+  
 //  attachInterrupts
   setup_sensors();
+  DEBUG("Sensors setted up.");
+  #ifdef LOGGING
   logger.setup();
-  #ifdef BMP388_ON
+  #endif
+  #ifdef __BMP388__
   attachInterrupt(digitalPinToInterrupt(BMP388_INT), altimeterCB, RISING);
   #endif
-  #if defined(DSO32_ON) || defined(ISM330_ON)
+  #if defined(__DSO32__) || defined(__ISM330__)
   attachInterrupt(digitalPinToInterrupt(DSO32_INT_ACC), accCB, RISING);
   attachInterrupt(digitalPinToInterrupt(DSO32_INT_GYRO), gyroCB, RISING);
   #endif
-  #ifdef H3LIS331DL_ON
+  #ifdef __H3LIS331DL__
   attachInterrupt(digitalPinToInterrupt(H3LIS331DL_INT), hf_accCB, RISING);
   #endif
-  Serial.println("Interrupts setted up.");
-  Serial.println("---");
+  DEBUG("Interrupts setted up.");
+  DEBUG("---");
   
   digitalWrite(GREEN_LED,HIGH);
   
@@ -88,38 +100,48 @@ void loop() {
       break;
     }
   }
-#ifdef BMP388_ON
+#ifdef __BMP388__
 void altimeterCB(){
-  if(sizeof(buffers.altimeter)==0){
+  if(buffers.altimeter.size()==0){
     altiValues_t v = {};
     buffers.altimeter.push_back(v);
   }
-  buffers.altimeter.push_back(altimeter.measure(buffers.altimeter.back()));
+  altiValues_t v = altimeter.measure(buffers.altimeter.back());
+  //DEBUG("ALTI: " + String(v.toString().c_str()));
+  buffers.altimeter.push_back(v);
 }
 #endif
-#if defined(DSO32_ON) || defined(ISM330_ON)
+
+#if defined(__DSO32__) || defined(__ISM330__)
 void gyroCB(){
-  if(sizeof(buffers.gyro)==0){
+  if(buffers.gyro.size()==0){
     imu_values v = {};
     buffers.gyro.push_back(v);
   }
-  buffers.gyro.push_back(imu.measureGyro(buffers.gyro.back()));
+  imu_values v = imu.measureGyro(buffers.gyro.back());
+  DEBUG("GYRO: " + String(v.toString().c_str()));
+  buffers.gyro.push_back(v);
 }
 
 void accCB(){
-  if(sizeof(buffers.acc)==0){
+  if(buffers.acc.size()==0){
     imu_values v = {};
     buffers.acc.push_back(v);
   }
-  buffers.acc.push_back(imu.measureAcc(buffers.acc.back()));
+  imu_values v = imu.measureAcc(buffers.acc.back());
+  DEBUG("ACC: " + String(v.toString().c_str()));
+  buffers.acc.push_back(v);
 }
 #endif
-#ifdef H3LIS331DL_ON
+
+#ifdef __H3LIS331DL__
 void hf_accCB(){
-  if(sizeof(buffers.hf_acc)==0){
+  if(buffers.hf_acc.size()==0){
     hf_imu_values v = {};
     buffers.hf_acc.push_back(v);
   }
-  buffers.hf_acc.push_back(hf_acc.measure(buffers.hf_acc.back()));
+  hf_imu_values v = hf_acc.measure(buffers.hf_acc.back());
+  DEBUG("HF_ACC: " + String(v.toString().c_str()));
+  buffers.hf_acc.push_back(v);
 }
 #endif

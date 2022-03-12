@@ -9,16 +9,15 @@ int BMP388::setup(){
   pinMode(BMP388_CS, OUTPUT);
   pinMode(BMP388_INT, INPUT);
   digitalWrite(BMP388_CS, HIGH);
-  
   SPI.beginTransaction(SPISettings(BMP388_SPI_SPEED, MSBFIRST, SPI_MODE3));
   digitalWrite(BMP388_CS, LOW);
   //impostazioni
   byte settingsBuff[10] = {BMP388_REG_INT_CTRL, 0b01000010, BMP388_REG_PWR_CTRL, 0b00110011,
                             BMP388_REG_OSR, 0b00000011, BMP388_REG_ODR, 0x02, BMP388_REG_CONFIG, 0x02,};
   SPI.transfer(settingsBuff, 10);
+  //STUCK HERE
   digitalWrite(BMP388_CS, HIGH);
   SPI.endTransaction();
-
   BMP388::calib();
   return 0; // the return value of the setup function will be used for error handling
 }
@@ -74,7 +73,6 @@ altiValues_t BMP388::measure(altiValues_t filtPrec){
   float R=1;
   float Q=1e-05;
   float p=1.0;
-
   //filtro di Kalman
   float Pp=p+Q;
   //xp=x;
@@ -85,8 +83,6 @@ altiValues_t BMP388::measure(altiValues_t filtPrec){
   //altiValues.filtAlti=0.90476*filtPrec+0.04761*altiValues.altitude+0.04761*prec;
   return altiValues;
 }
-
-
 
 float BMP388::getAltitude(float p, float t){
  float alti = ((float)powf(SEA_LEVEL_PRESSURE / p, 0.190223f) - 1.0f) * (t + 273.15f) / 0.0065f;

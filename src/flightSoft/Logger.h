@@ -13,21 +13,16 @@
 #define SD_CONFIG SdioConfig(FIFO_SDIO) // Use Teensy SDIO
 
 struct Buffers{
-  #ifdef BMP388_ON
-  std::vector<altiValues_t> altimeter {};
+  #ifdef __BMP388__
+  std::vector<altiValues_t> altimeter;
   #endif
-  #if defined(DSO32_ON) || defined(ISM330_ON)
-  std::vector<imu_values> acc {};
-  std::vector<imu_values> gyro {};
+  #if defined(__DSO32__) || defined(__ISM330__)
+  std::vector<imu_values> acc;
+  std::vector<imu_values> gyro;
   #endif
-  #ifdef H3LIS331DL_ON
-  std::vector<hf_imu_values> hf_acc {};
+  #ifdef __H3LIS331DL__
+  std::vector<hf_imu_values> hf_acc;
   #endif
-
-//  std::string toString()
-//  {
-//    return "title = " + title + ", year = " + to_string(year);
-//  }
 };
 
 typedef enum {
@@ -40,11 +35,6 @@ typedef enum {
 struct State{
   unsigned long tstp = 0;
   flightState_t state = ON_PAD ;
-  
-//  string toString()
-//  {
-//    return "title = " + title + ", year = " + to_string(year);
-//  }
 };
 
 class Logger{
@@ -55,7 +45,7 @@ class Logger{
         void initDone();
         int transferLogToSD();
     private:
-        LittleFS_QPINAND myfs;
+        LittleFS_QSPI myfs;
         SdFat32 sd;
         
         File dump;

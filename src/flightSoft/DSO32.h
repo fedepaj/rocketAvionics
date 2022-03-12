@@ -7,12 +7,13 @@
 #define DSO32_SPI_SPEED 1000000
 
 #include <SPI.h>
-#include "settings.h"
 
 #define DATA_RATE 833 //uguale per accelerometro e giroscopio
 
 #define ACC_FS 16 // 2(solo ism330), 4, 8, 16, 32(solo dso32)
 #define GYRO_FS 2000 //250, 500, 1000. 2000, 4000(solo ism330)
+
+#define __DSO32__
 
 #define DSO32_REG_INT1_CTRL 0x0D
 #define DSO32_REG_INT2_CTRL 0x0E
@@ -52,7 +53,7 @@
 #define DATA_RATE_VALUE 0b10100000
 #endif
 //quando uso ism330
-#ifdef ISM330_ON
+#ifdef __ISM330__
 
 #if ACC_FS == 2
 #define ACC_FS_VALUE 0b0000
@@ -73,7 +74,7 @@
 
 #endif
 //quando uso dso32
-#ifdef DSO32_ON
+#ifdef __DSO32__
 
 #if ACC_FS == 4
 #define ACC_FS_VALUE 0b0000

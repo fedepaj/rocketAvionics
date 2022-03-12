@@ -137,21 +137,21 @@ void Logger::setup(){
         }
     }
   }
-  Serial.println("QUI");
-  int count=0;
-  char b[100];
-  String fname="dump_"+String(count)+".bin";
-  fname.toCharArray(b, fname.length());
-  while(File f=myfs.open(b, FILE_READ)){
-    f.close();
-    count++;
-    fname="dump_"+String(count)+".bin";
-    fname.toCharArray(b, fname.length());
-  }
-  String dN="dump_"+String(count++);
-  dN.toCharArray(_dumpFileName,dN.length());
-  String sN="state_"+String(count++);
-  sN.toCharArray(_stateFileName,sN.length());
+//  Serial.println("QUI");
+//  int count=0;
+//  char b[100];
+//  String fname="dump_"+String(count)+".bin";
+//  fname.toCharArray(b, fname.length());
+//  while(File f=myfs.open(b, FILE_READ)){
+//    f.close();
+//    count++;
+//    fname="dump_"+String(count)+".bin";
+//    fname.toCharArray(b, fname.length());
+//  }
+//  String dN="dump_"+String(count++);
+//  dN.toCharArray(_dumpFileName,dN.length());
+//  String sN="state_"+String(count++);
+//  sN.toCharArray(_stateFileName,sN.length());
 
 }
 
