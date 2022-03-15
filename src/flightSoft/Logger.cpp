@@ -1,6 +1,10 @@
 #include "Logger.h"
 //
-int Logger::transferLogToSD(){
+void Logger::ready(){
+  digitalWrite(GREEN_LED,HIGH);
+  }
+  
+template <typename T> int Logger::transferLogToSD(String filename){
   int c=0;
   String folderName = "Experiment_";
   while (sd.exists(folderName+String(c))) c++;
@@ -12,21 +16,20 @@ int Logger::transferLogToSD(){
     Serial.println("Chdir failed.");
     while(1){}
   }
-  return 0;
-  
-//  Serial.println("We are now in folder "+folderName+String(c));
-//  File in;
-//  File32 ex;
-//  /*****GYRO*****/
-//    int count=0;
-//    char b[100];
-//    String fname="dump_"+String(count)+".bin";
-//    fname.toCharArray(b, fname.length());
-//    while(in=myfs.open(b, FILE_READ)){
-//    
-//    
+
+  Serial.println("We are now in folder "+folderName+String(c));
+  File in;
+  File32 ex;
+  /*****GYRO*****/
+    int count=0;
+    char b[100];
+    String fname=filename+String(count)+".bin";
+    fname.toCharArray(b, fname.length());
+    while(in=myfs.open(b, FILE_READ)){
+    
+    
 //      Buffers buffers;
-//      fname = "dump_"+String(count)+".csv";
+//      fname = filename+String(count)+".csv";
 //      fname.toCharArray(b, fname.length());
 //      if (!ex.open(b, O_WRONLY | O_CREAT)) {
 //        Serial.println("Gyro csv file creation failed!");
@@ -49,29 +52,28 @@ int Logger::transferLogToSD(){
   /*****END GYRO*****/
 }
 //  /*****ALTI*****/
-//  count=0;
-//  fname="alti_"+String(count)+".bin";
-//  fname.toCharArray(b, fname.length());
-//    while(in=myfs.open(b, FILE_READ)){
-//  
-//  
-//  altiValues_t altiB;
-//  fname = "alti_"+String(count)+".csv";
-//  fname.toCharArray(b, fname.length());
-//  if (!ex.open(b, O_WRONLY | O_CREAT)) {
-//    //error("create Folder1/file1.txt failed");
-//  }
-//  digitalWrite(RED_LED,HIGH);
-//  Serial.println("Copying alti from SPI to SD");
-//  ex.print("tstp,t,p,alt\n");
-//  while (in.available()) {
-//    in.read((byte *)&altiB, sizeof(altiValues_t)); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1  
-//    ex.print(String(altiB.tstp)+", "+String(altiB.t)+", "+String(altiB.p)+", "+String(altiB.altitude)+"\n");
-//  }
-//  Serial.println("Altimeter measures are now on the sd card!");
-//  digitalWrite(RED_LED,LOW);
-//  in.close();
-//  ex.close();
+  count=0;
+  fname=filename+String(count)+".bin";
+  fname.toCharArray(b, fname.length());
+    while(in=myfs.open(b, FILE_READ)){
+
+  T v;
+  fname = filename+String(count)+".csv";
+  fname.toCharArray(b, fname.length());
+  if (!ex.open(b, O_WRONLY | O_CREAT)) {
+    //error("create Folder1/file1.txt failed");
+  }
+  digitalWrite(RED_LED,HIGH);
+  Serial.println("Copying from SPI to SD");
+  ex.print("tstp,t,p,alt\n");
+  while (in.available()) {
+    in.read((byte *)&v, sizeof(T)); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1  
+    ex.print(String(v.toString().c_str()));
+  }
+  Serial.println("Measures are now on the sd card!");
+  digitalWrite(RED_LED,LOW);
+  in.close();
+  ex.close();
 //  count++;
 //  fname="alti_"+String(count)+".bin";
 //  fname.toCharArray(b, fname.length());
@@ -108,9 +110,10 @@ int Logger::transferLogToSD(){
 //  /*****END ACC*****/
 //  return 1;
 // 
-//}
+}
+}
 //
-void Logger::setup(){
+void Logger::setup(String filename){
     pinMode(GREEN_LED,OUTPUT);
     pinMode(RED_LED,OUTPUT);
     
@@ -130,42 +133,34 @@ void Logger::setup(){
   }else{
     Serial.println("SD initialized.");
 
-    if(!transferLogToSD()){
-        Serial.println("Failed to copy files from flash to SD card");
-        while (1) {
-        // Error, so don't do anything more - stay stuck here
-        }
-    }
   }
 //  Serial.println("QUI");
-//  int count=0;
-//  char b[100];
-//  String fname="dump_"+String(count)+".bin";
-//  fname.toCharArray(b, fname.length());
-//  while(File f=myfs.open(b, FILE_READ)){
-//    f.close();
-//    count++;
-//    fname="dump_"+String(count)+".bin";
-//    fname.toCharArray(b, fname.length());
-//  }
-//  String dN="dump_"+String(count++);
-//  dN.toCharArray(_dumpFileName,dN.length());
-//  String sN="state_"+String(count++);
+    curr_dump=0;
+  char b[100];
+  String fname=filename+String(curr_dump)+".bin";
+  fname.toCharArray(b, fname.length());
+  while(File f=myfs.open(b, FILE_READ)){
+    f.close();
+    curr_dump++;
+    fname=filename+String(curr_dump)+".bin";
+    fname.toCharArray(b, fname.length());
+  }
+  String dN=filename+String(curr_dump++);
+  dN.toCharArray(_dumpFileName,dN.length());
+//  String sN="state_"+String(curr_dump++);
 //  sN.toCharArray(_stateFileName,sN.length());
 
 }
 
-void Logger::initDone(){
-    digitalWrite(GREEN_LED,HIGH);
-  }
-  
-void Logger::save(Buffers *buffers){
-    File file = myfs.open(_dumpFileName, FILE_WRITE);
-    file.write((byte *)&buffers, sizeof(*buffers)); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1
+template <typename T> void Logger::save(T q, String filename){
+    File file = myfs.open(filename.c_str(), FILE_WRITE);
+    file.write((byte *)&q, sizeof(T)*q); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1
+    DEBUG("Saving data");
     file.close();
     digitalWrite(RED_LED,LOW);
     
 }
+
 
 void Logger::save_state(State *state){
   File file = myfs.open(_stateFileName, FILE_WRITE);

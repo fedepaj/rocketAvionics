@@ -1,6 +1,8 @@
 #ifndef DSO32_H
 #define DSO32_H
 
+#include "settings.h"
+#if defined(__DSO32__) || defined(__ISM330__) // Checks if one of the two is defined in the settings file and enables the code, the fastest way I found
 #define DSO32_CS 10
 #define DSO32_INT_GYRO 40
 #define DSO32_INT_ACC 41
@@ -12,8 +14,6 @@
 
 #define ACC_FS 16 // 2(solo ism330), 4, 8, 16, 32(solo dso32)
 #define GYRO_FS 2000 //250, 500, 1000. 2000, 4000(solo ism330)
-
-#define __DSO32__
 
 #define DSO32_REG_INT1_CTRL 0x0D
 #define DSO32_REG_INT2_CTRL 0x0E
@@ -145,4 +145,5 @@ class DSO32
     imu_values measureAcc(imu_values prec);
 };
 
+#endif
 #endif

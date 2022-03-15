@@ -1,5 +1,5 @@
 #include "DSO32.h"
-
+#if defined(__DSO32__) || defined(__ISM330__)
 /**********************************************************************************************
  * FUNZIONI PER LA IMU
  */
@@ -8,9 +8,8 @@ int DSO32::setup(){
   pinMode(DSO32_CS, OUTPUT);
   pinMode(DSO32_INT_GYRO, INPUT);
   pinMode(DSO32_INT_ACC, INPUT);
-
+  SPI.begin();
   digitalWrite(DSO32_CS, HIGH);
-  
   SPI.beginTransaction(SPISettings(DSO32_SPI_SPEED, MSBFIRST, SPI_MODE3));
   digitalWrite(DSO32_CS, LOW);
   byte buffero[2] = {DSO32_REG_WHO_AM_I | 0b10000000};
@@ -26,7 +25,7 @@ int DSO32::setup(){
   digitalWrite(DSO32_CS, HIGH);
   digitalWrite(DSO32_CS, LOW);
   //Data Rates e Full Scale accelerometro e gyro
-  byte odrScaleBuff[3] = {DSO32_REG_CTRL1_XL, 0b01110100, 0b01111100}; //vedi CTRL1_XL e CTRL2_G, 833Hz, 32g,acc lpf2 disattivo, 2000dps
+  byte odrScaleBuff[3] = {DSO32_REG_CTRL1_XL, DATA_RATE_VALUE | ACC_FS_VALUE, DATA_RATE_VALUE | GYRO_FS_VALUE}; //vedi CTRL1_XL e CTRL2_G, 833Hz, 32g,acc lpf2 disattivo, 2000dps  SPI.transfer(odrScaleBuff,3);
   SPI.transfer(odrScaleBuff,3);
   digitalWrite(DSO32_CS, HIGH);
   digitalWrite(DSO32_CS, LOW);
@@ -43,15 +42,14 @@ int DSO32::setup(){
   digitalWrite(DSO32_CS, HIGH);
   SPI.endTransaction();
   
-//  Serial.print("valori interrupt: ");
-//  Serial.print(laller[1], BIN);
-//  Serial.print("   ");
-//  Serial.println(laller[2], BIN);
+  //Serial.print("valori interrupt: ");
+  //Serial.print(laller[1], BIN);
+  //Serial.print("   ");
+  //Serial.println(laller[2], BIN);
   return 0; // the return value of the setup function will be used for error handling
 }
 
 imu_values DSO32::measureGyro(imu_values prec){
-  Serial.println("QUI");
   imu_values values;
   byte buff[6];
   SPI.beginTransaction(SPISettings(DSO32_SPI_SPEED, MSBFIRST, SPI_MODE3));
@@ -60,7 +58,6 @@ imu_values DSO32::measureGyro(imu_values prec){
   SPI.transfer(buff,6);
   digitalWrite(DSO32_CS, HIGH);
   SPI.endTransaction();
-  Serial.println("QUI2");
   
   int16_t rawGyroX = buff[1] << 8 | buff[0];
   int16_t rawGyroY = buff[3] << 8 | buff[2];
@@ -77,17 +74,13 @@ imu_values DSO32::measureGyro(imu_values prec){
   float R=1.0;
   float Q=1e-05;
   float p=1.0;
-  Serial.println("QUI3");
   //filtro di Kalman
   float Pp=p+Q;
-  //xp=x;
   float K=Pp/(Pp+R);
   float e=values.mod-prec.filt;
   p=(1-K)*Pp;
   values.filt=prec.filt+K*e;
-  Serial.println("GYRO: " + String(values.toString().c_str()));
   return values;
-//  gyroValues.filtGyro=0.90476*prec.filtAcc+0.04761* gyroValues.mod+0.04761*prev;
 }
 
 imu_values DSO32::measureAcc(imu_values prec){
@@ -114,11 +107,10 @@ imu_values DSO32::measureAcc(imu_values prec){
 
   //filtro di Kalman
   float Pp=p+Q;
-  //xp=x;
   float K=Pp/(Pp+R);
   float e=values.mod-prec.filt;
   p=(1-K)*Pp;
   values.filt=prec.filt+K*e;
-  //accValues.filtAcc=0.90476*filtPrev+0.04761*accValues.mod+0.04761*prev;
   return values;
 }
+#endif

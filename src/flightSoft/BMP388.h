@@ -37,7 +37,7 @@ typedef struct{
   double t_lin;
 } calibData_t;
 
-typedef struct{
+typedef struct {
   unsigned long tstp = 0;
   float p = 0; 
   float t = 0;

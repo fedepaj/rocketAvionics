@@ -8,6 +8,7 @@
 int BMP388::setup(){
   pinMode(BMP388_CS, OUTPUT);
   pinMode(BMP388_INT, INPUT);
+  
   digitalWrite(BMP388_CS, HIGH);
   SPI.beginTransaction(SPISettings(BMP388_SPI_SPEED, MSBFIRST, SPI_MODE3));
   digitalWrite(BMP388_CS, LOW);
