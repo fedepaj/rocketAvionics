@@ -1,23 +1,32 @@
 #ifndef Data_H
 #define Data_H
 
-//#define CIRCULAR_BUFFER_INT_SAFE
-#include <CircularBuffer.h>
-
-//#include "vect.h"
-
 #define QSIZE 100000 // Define for buffer
 
-typedef enum {
-  ON_PAD,
-  ASCENT,
-  DESCENT,
-  LANDED
-} flightState_t;
+
+
+#include <string>
+#include <sstream>
+
+enum FligthState {ON_PAD=0, ASCENT,DESCENT ,LANDED};
+
 
 struct State{
   unsigned long tstp = 0;
-  flightState_t state = ON_PAD ;
+  FligthState state = ON_PAD ;
+  std::string toString(){
+    std::string states[] =
+      {
+        "ON_PAD",
+        "ASCENT",
+        "DESCENT",
+        "LANDED"
+      };
+    std::ostringstream ss;
+    ss << tstp << "," << states[state];
+    std::string s(ss.str());
+    return s;  
+    }
 };
 
 #endif

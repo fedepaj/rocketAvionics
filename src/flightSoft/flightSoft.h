@@ -1,14 +1,6 @@
 #include "settings.h"
+#include <CircularBuffer.h>
 
-#ifdef __BMP388__
-#include "BMP388.h"
-#endif
-#if defined(__DSO32__) || defined(__ISM330__)
-#include "DSO32.h"
-#endif
-#ifdef __H3LIS331DL__
-#include "H3LIS331DL.h"
-#endif
 
 #include "data.h"
 
@@ -31,23 +23,34 @@ DSO32 imu;
 H3LIS331DL hf_acc;
 #endif
 
-//EXTMEM struct Buffers buffers;
+State states[10];
+volatile int sq_len=0;
+
 #ifdef __BMP388__
 EXTMEM altiValues_t aq[QSIZE];
 volatile int aq_len=0;
+
+CircularBuffer<altiValues_t,500> altimeter_last_500;
 #endif
 
 #if defined(__DSO32__) || defined(__ISM330__)
 EXTMEM imu_values gq[QSIZE];
 volatile int gq_len=0;
 
+CircularBuffer<imu_values,500> gyro_last_500;
+
+
 EXTMEM imu_values acq[QSIZE];
 volatile int acq_len=0;
+
+CircularBuffer<imu_values,500> acc_last_500;
 #endif
 
 #ifdef __H3LIS331DL__
 EXTMEM hf_imu_values hf_acq[QSIZE];
 volatile int hf_acq_len=0;
+CircularBuffer<hf_imu_values,500> altimeter_last_500;
 #endif
 
-EXTMEM State state = {};
+State stateS = {};
+FligthState state = ON_PAD ;

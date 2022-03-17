@@ -1,6 +1,5 @@
 #include "flightSoft.h"
 
-
 void setup_sensors(){
 
     #if defined(__DSO32__) || defined(__ISM330__)
@@ -28,17 +27,11 @@ void setup() {
   #ifndef __DSO32__
   SPI.begin();
   #endif
-//  attachInterrupts
   setup_sensors();
   DEBUG("Sensors setted up.");
   #ifdef LOGGING
-  logger.setup(String("ciao"));
-  if(!logger.transferLogToSD<imu_values>(String("ciao"))){
-        Serial.println("Failed to copy files from flash to SD card");
-        while (1) {
-        // Error, so don't do anything more - stay stuck here
-        }
-    }
+  logger.setup();
+  logger.transferLogsToSD();
   #endif
   #ifdef __BMP388__
   attachInterrupt(digitalPinToInterrupt(BMP388_INT), altimeterCB, RISING);
@@ -61,69 +54,107 @@ void setup() {
 void loop() {
 //  logger.save();
   
-//   switch(state.state){
-//    case ON_PAD:
-//     // if(){  //launch condition met
-//        
-//      state.state=ASCENT;
-//      state.tstp = millis();
-//     // }
-//      break;
-//    case ASCENT:
-//    
-//    //if(){  //apogee condition met
-//        
-//      //  state=DESCENT;
-//     // }
-//      break;
-//    case DESCENT:
-//   // if(){  //landing condition met
-//        
-//     //   state=LANDED;
-//     // }
-//      //break;
-//    case LANDED:
-//      logger.save(&buffers);
-//      //Remember to save the remain of the buffers bf closing
-//      //Remember to close the file buffers
-//      break;
-//    }
+   switch(state){
+      case ON_PAD:
+        delay(5000);
+        state=ASCENT;
+        stateS.state=state;
+        stateS.tstp = millis();
+        states[sq_len]=stateS;
+        break;
+    case ASCENT:
+    
+    //if(){  //apogee condition met
+        
+      //  state=DESCENT;
+     // }
+      break;
+    case DESCENT:
+   // if(){  //landing condition met
+        
+     //   state=LANDED;
+     // }
+      //break;
+    case LANDED:
+      #ifdef __LOGGING__
+      logger.save_states(states,sq_len);
+      logger.save_acc(acq,acq_len);
+      logger.save_gyro(gq,gq_len);
+      logger.save_alti(aq,aq_len);
+      logger.transferLogsToSD();
+      #endif
+      //Remember to save the remain of the buffers bf closing
+      //Remember to close the file buffers
+      break;
+    }
   }
   
+//TODO: test this
+// This could reduce the callback code of 1/4 sice we would need only to pass the rigth parameters in the callbacks
+//template <typename T> T callback(T q[], int *len, T (*f)(T)){
+//  T ve = {};
+//    if(len==0){
+//      T ve = {};
+//      v = (*f)(ve);
+//if(len<=QSIZE){
+//      q[len]=v;
+//      len++;
+//}
+//return v;
+//    }else{
+//      T v = (*f)(q[len]);
+//if(len<=QSIZE){
+//      q[len]=v;
+//      len++;
+//}
+//      DEBUG("ALTI: " + String(v.toString().c_str())+", "+String(len));
+//return v;
+//    }
+//  }
+//  }
 #ifdef __BMP388__
 void altimeterCB(){
-  if(aq_len<=QSIZE){
     if(aq_len==0){
       altiValues_t v = {};
       v = altimeter.measure(v);
-      aq[aq_len]=v;
-      aq_len++;
+      if(aq_len<=QSIZE){
+        aq[aq_len]=v;
+        aq_len++;
+      }
+      altimeter_last_500.push(v);
     }else{
       altiValues_t v = altimeter.measure(aq[aq_len]);
-      aq[aq_len]=v;\
-      aq_len++;
+      if(aq_len<=QSIZE){
+        aq[aq_len]=v;
+        aq_len++;
+      }
+      altimeter_last_500.push(v);
       DEBUG("ALTI: " + String(v.toString().c_str())+", "+String(aq_len));
     }
-  }
 }
 #endif
 
 #if defined(__DSO32__) || defined(__ISM330__)
 void gyroCB(){
-  if(gq_len<=QSIZE){
+  
     if(gq_len==0){
       imu_values v = {};
       v = imu.measureGyro(v);
-      gq[gq_len]=v;
-      gq_len++;
+      if(gq_len<=QSIZE){
+        gq[gq_len]=v;
+        gq_len++;
+      }
+      gyro_last_500.push(v);
     }else{
       imu_values v = imu.measureGyro(gq[gq_len]);
-      gq[gq_len]=v;\
-      gq_len++;
+      if(gq_len<=QSIZE){
+        gq[gq_len]=v;
+        gq_len++;
+      }
+      gyro_last_500.push(v);
       DEBUG("GYRO: " + String(v.toString().c_str())+", "+String(gq_len));
       DEBUG(QSIZE);
     }
-  }
 }
 
 void accCB(){
@@ -131,12 +162,18 @@ void accCB(){
     if(acq_len==0){
       imu_values v = {};
       v = imu.measureAcc(v);
-      acq[acq_len]=v;
-      acq_len++;
+      if(gq_len<=QSIZE){
+        acq[acq_len]=v;
+        acq_len++;
+      }
+      acc_last_500.push(v);
     }else{
       imu_values v = imu.measureAcc(acq[acq_len]);
-      acq[acq_len]=v;\
-      acq_len++;
+      if(gq_len<=QSIZE){
+        acq[acq_len]=v;
+        acq_len++;
+      }
+      acc_last_500.push(v);
       DEBUG("ACC: " + String(v.toString().c_str())+", "+String(acq_len));
     }
   }
