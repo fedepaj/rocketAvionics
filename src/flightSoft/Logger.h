@@ -34,23 +34,9 @@ class Logger{
         int transferLogsToSD();
         
     private:
-        #if defined(__DSO32__) || defined(__ISM330__)
-        String f_imu_acc_name = String("imu_acc");
-        int f_imu_acc_cd=-1;
-        String f_imu_gyro_name = String("imu_gyro");
-        int f_imu_gyro_cd=-1;
-        #endif
-
-        #ifdef __BMP388__
-        String f_alti_name = String("alti");
-        int f_alti_cd=-1;
-        #endif
-        
-        String f_states_name = String("states");
-        int f_states_cd=-1;
         
         LittleFS_QSPI myfs;
-        File file;
+
         SdFat32 sd;
         bool sd_ok;
         void cdToNewFolder();
@@ -58,8 +44,9 @@ class Logger{
         template <typename T> int transferLogToSD(File file);
         
         template <typename T> void save(T *q, int len, char filename[],File fileb);
-        File statesFile;
         
+        File statesFile;
+        char statesFileName[100];
         File gyroFile;  // Specifes that dataFile is of File type
         File accFile;
         char gyroFileName[100]; 

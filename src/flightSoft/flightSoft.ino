@@ -69,6 +69,7 @@ void loop() {
         stateS.state=state;
         stateS.tstp = millis();
         states[sq_len]=stateS;
+        sq_len++;
         break;
     case ASCENT:
     

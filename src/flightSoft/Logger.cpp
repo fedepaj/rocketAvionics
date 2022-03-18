@@ -29,6 +29,8 @@ void Logger::setup(){
     acN.toCharArray(accFileName,acN.length());
     String hAcN="highAcc_"+String(count);
     acN.toCharArray(highAccFileName,acN.length());
+    String sN="states_"+String(count); 
+    sN.toCharArray(statesFileName,sN.length());
   }
   DEBUG("LittleFS initialized.");
 
@@ -89,6 +91,7 @@ template <typename T> int Logger::transferLogToSD(File entry){
 }
 
 int Logger::transferLogsToSD(){
+  if(!sd_ok) return 1;
   File dir = myfs.open("/");
   cdToNewFolder();
   while(File entry = dir.openNextFile()) {
@@ -117,11 +120,12 @@ int Logger::transferLogsToSD(){
       transferLogToSD<altiValues_t>(entry);
     }
     #endif
-    myfs.remove(file.name());
+    myfs.remove(entry.name());
+    return 0;
   }
 }
 
-template <typename T> void Logger::save(T *q, int len, char filename[],File fileb){
+template <typename T> void Logger::save(T *q, int len, char filename[], File fileb){
     DEBUG("QUI1");
     fileb = myfs.open(filename, FILE_WRITE);
     //detachInterrupt(digitalPinToInterrupt(BMP388_INT));
@@ -133,17 +137,16 @@ template <typename T> void Logger::save(T *q, int len, char filename[],File file
 }
 
 void Logger::save_states(State *states, int len){
-
-  //save<State>(states, len, );
+  save<State>(states, len, statesFileName, statesFile);
 }
 
 #if defined(__DSO32__) || defined(__ISM330__)
 void Logger::save_acc(imu_values *v, int len){
-  save<imu_values>(v,len,gyroFileName);
+  save<imu_values>(v,len,gyroFileName,accFile);
 }
 
 void Logger::save_gyro(imu_values *v, int len){
-  save<imu_values>(v,len,accFileName);
+  save<imu_values>(v,len,accFileName,gyroFile);
 }
 #endif
 

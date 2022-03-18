@@ -1,7 +1,7 @@
 #ifndef Settings_H
 #define Settings_H
 
-//#define __DSO32__
+#define __DSO32__
 //#define __ISM330__
 #define __BMP388__
 //#define __H3LIS331DL__
