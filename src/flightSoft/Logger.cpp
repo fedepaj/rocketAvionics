@@ -71,23 +71,20 @@ template <typename T> int Logger::transferLogToSD(File entry){
   if(!sd_ok) return 1;
   T v;
   File32 ex;
-  DEBUG("SD0.1.0");
+
   if (!ex.open(String(entry.name()+String(".csv")).c_str(), O_WRONLY | O_CREAT)) {
     return 1;
   }
-  DEBUG("SD0.1.1");
+
   while (entry.available()) {
-    DEBUG("SD-.-.-.0");
+
     entry.read((byte *)&v, sizeof(T)); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1  
-    DEBUG("SD-.-.-.1");
+
     ex.print(String(v.toString().c_str()));
   }
-  DEBUG("SD-.-.2");
   // Here we need to delete the file
   entry.close();
-  DEBUG("SD-.-.3");
   ex.close();
-  DEBUG("SD-.-.4");
   return 0;
 }
 
@@ -95,28 +92,28 @@ int Logger::transferLogsToSD(){
   File dir = myfs.open("/");
   cdToNewFolder();
   while(File entry = dir.openNextFile()) {
-    DEBUG("SD0");
+
     std::string s = entry.name();
     if(s.rfind("state", 0) == 0){
-      DEBUG("SD0.1");
+
       transferLogToSD<State>(entry);
     }
     
     #if defined(__DSO32__) || defined(__ISM330__)
     else if(s.rfind("imu_acc", 0) == 0){
-      DEBUG("SD1");
+
       transferLogToSD<imu_values>(entry);
     }
     
     else if(s.rfind("imu_gyro", 0) == 0){
-      DEBUG("SD2");
+
       transferLogToSD<imu_values>(entry);
     }
     #endif
     
     #ifdef __BMP388__
     else if(s.rfind("alti", 0) == 0){
-      DEBUG("SD3");
+      
       transferLogToSD<altiValues_t>(entry);
     }
     #endif

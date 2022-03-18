@@ -35,6 +35,7 @@ void setup() {
   #endif
   SPI.begin();
   setup_sensors();
+
   #ifdef __BMP388__
   attachInterrupt(digitalPinToInterrupt(BMP388_INT), altimeterCB, RISING);
   #endif
@@ -97,7 +98,9 @@ void loop() {
       DEBUG("Dumped alti");
       logger.transferLogsToSD();
       #endif
+      #ifdef __LOGGING__
       logger.done();
+      #endif
       while(1){}
       //Remember to save the remain of the buffers bf closing
       //Remember to close the file buffers
@@ -210,7 +213,7 @@ void hf_accCB(){
 
 void removeBeforeFlight(){
   while(!digitalRead(0)){
-    Serial.println("qui");
+    DEBUG("WAITING");
     delay(100);
   }
 }
