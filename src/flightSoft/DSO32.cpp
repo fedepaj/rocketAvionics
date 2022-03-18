@@ -70,7 +70,7 @@ imu_values DSO32::measureGyro(imu_values prec){
   values.tstp = millis();
   
   values.mod=sqrt(pow(values.x,2)+pow(values.y,2)+pow(values.z,2));
-  
+  /*
   float R=1.0;
   float Q=1e-05;
   float p=1.0;
@@ -80,6 +80,7 @@ imu_values DSO32::measureGyro(imu_values prec){
   float e=values.mod-prec.filt;
   p=(1-K)*Pp;
   values.filt=prec.filt+K*e;
+  */
   return values;
 }
 
@@ -101,16 +102,23 @@ imu_values DSO32::measureAcc(imu_values prec){
   values.y = rawAccY * DSO32_BIT_2_MSS;
   values.z = rawAccZ * DSO32_BIT_2_MSS;
   values.mod=sqrt(pow(values.x,2)+pow(values.y,2)+pow(values.z,2));
+  //filtro passa basso a 100Hz
+  float a = 0.8928;
+  float b = 0.0536;
+  float c = 1 - a - b;
+  values.filt = a*prec.filt + b*prec.mod + c*values.mod;
+  /*
   float R=1.0;
   float Q=1e-05;
   float p=1.0;
-
   //filtro di Kalman
   float Pp=p+Q;
   float K=Pp/(Pp+R);
   float e=values.mod-prec.filt;
   p=(1-K)*Pp;
   values.filt=prec.filt+K*e;
+  */
+  ACCFILTDEBUG("Acc:"+String(values.mod)+", "+"Filtrata:"+String(values.filt));
   return values;
 }
 #endif

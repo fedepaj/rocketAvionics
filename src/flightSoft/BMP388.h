@@ -1,5 +1,6 @@
 #ifndef BMP388_H
 #define BMP388_H
+#include "settings.h"
 
 #define BMP388_CS 19
 #define BMP388_INT 20
