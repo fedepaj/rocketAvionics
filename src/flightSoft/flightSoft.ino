@@ -19,7 +19,9 @@ void setup_sensors(){
 }
 
 void setup() {
-
+  pinMode(0, INPUT_PULLUP);
+  Serial.begin(512000);
+  removeBeforeFlight();
   #ifdef __DEBUG__
   Serial.begin(512000);
   #endif
@@ -48,7 +50,12 @@ void setup() {
   #ifdef __LOGGING__
   logger.ready();
   #endif
-  
+/*
+  delay(1);
+  noInterrupts();
+  removeBeforeFlight();
+  interrupts();
+  */
 }
 
 void loop() {
@@ -132,7 +139,7 @@ void altimeterCB(){
       }
       altimeter_last_500.push(v);
     }else{
-      altiValues_t v = altimeter.measure(aq[aq_len]);
+      altiValues_t v = altimeter.measure(altimeter_last_500.last());
       if(aq_len<=QSIZE){
         aq[aq_len]=v;
         aq_len++;
@@ -155,7 +162,7 @@ void gyroCB(){
       }
       gyro_last_500.push(v);
     }else{
-      imu_values v = imu.measureGyro(gq[gq_len]);
+      imu_values v = imu.measureGyro(gyro_last_500.last());
       if(gq_len<=QSIZE){
         gq[gq_len]=v;
         gq_len++;
@@ -177,7 +184,7 @@ void accCB(){
       }
       acc_last_500.push(v);
     }else{
-      imu_values v = imu.measureAcc(acq[acq_len]);
+      imu_values v = imu.measureAcc(acc_last_500.last());
       if(gq_len<=QSIZE){
         acq[acq_len]=v;
         acq_len++;
@@ -200,3 +207,10 @@ void hf_accCB(){
   buffers.hf_acc.push_back(v);
 }
 #endif
+
+void removeBeforeFlight(){
+  while(!digitalRead(0)){
+    Serial.println("qui");
+    delay(100);
+  }
+}

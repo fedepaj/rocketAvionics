@@ -71,6 +71,12 @@ altiValues_t BMP388::measure(altiValues_t filtPrec){
   altiValues.p=getP();
   altiValues.t=getT();
   altiValues.altitude=getAltitude(altiValues.p,altiValues.t);
+  //filtro passa basso a 2Hz, i valori commentati sono relativi a 10Hz
+  float a = 0.9802; //0.9048
+  float b = 0.0099; //0.0476
+  float c = 1 - a - b;
+  altiValues.filtAlti = a*filtPrec.filtAlti + b*filtPrec.altitude + c*altiValues.altitude;
+  /*
   float R=1;
   float Q=1e-05;
   float p=1.0;
@@ -82,6 +88,11 @@ altiValues_t BMP388::measure(altiValues_t filtPrec){
   p=(1-K)*Pp;
   altiValues.filtAlti=filtPrec.filtAlti+K*e;
   //altiValues.filtAlti=0.90476*filtPrec+0.04761*altiValues.altitude+0.04761*prec;
+  */
+  float vel = filtPrec.altitude - altiValues.altitude;
+  float filtVel = filtPrec.filtAlti - altiValues.filtAlti;
+  
+  ALTFILTDEBUG("Altitudine:"+String(altiValues.altitude)+", "+"Filtrata:"+String(altiValues.filtAlti));
   return altiValues;
 }
 
