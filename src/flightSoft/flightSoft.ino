@@ -19,7 +19,9 @@ void setup_sensors(){
 }
 
 void setup() {
+  pinMode(0, INPUT_PULLUP);
   Serial.begin(512000);
+  removeBeforeFlight();
   #ifdef __DEBUG__
   Serial.begin(512000);
   #endif
@@ -34,7 +36,6 @@ void setup() {
   logger.transferLogsToSD();
   #endif
 
-  pinMode(0, INPUT_PULLUP);
   
   #ifdef __BMP388__
   attachInterrupt(digitalPinToInterrupt(BMP388_INT), altimeterCB, RISING);
@@ -51,12 +52,12 @@ void setup() {
   #ifdef __LOGGING__
   logger.ready()
   #endif
-
+/*
   delay(1);
   noInterrupts();
   removeBeforeFlight();
   interrupts();
-  
+  */
 }
 
 void loop() {
