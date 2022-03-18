@@ -24,15 +24,15 @@ void setup() {
   Serial.begin(512000);
   #endif
   //SPI.begin();
-  #ifndef __DSO32__
-  SPI.begin();
-  #endif
-  setup_sensors();
+  
+  
   DEBUG("Sensors setted up.");
-  #ifdef LOGGING
+  #ifdef __LOGGING__
   logger.setup();
   logger.transferLogsToSD();
   #endif
+  SPI.begin();
+  setup_sensors();
   #ifdef __BMP388__
   attachInterrupt(digitalPinToInterrupt(BMP388_INT), altimeterCB, RISING);
   #endif
@@ -46,7 +46,7 @@ void setup() {
   DEBUG("Interrupts setted up.");
   DEBUG("---");
   #ifdef __LOGGING__
-  logger.ready()
+  logger.ready();
   #endif
   
 }
@@ -57,7 +57,7 @@ void loop() {
    switch(state){
       case ON_PAD:
         delay(5000);
-        state=ASCENT;
+        state=LANDED;
         stateS.state=state;
         stateS.tstp = millis();
         states[sq_len]=stateS;
@@ -77,12 +77,21 @@ void loop() {
       //break;
     case LANDED:
       #ifdef __LOGGING__
+      DEBUG("Beginnning dump");
       logger.save_states(states,sq_len);
+      DEBUG("Dumped states");
+      #if defined(__DSO32__) || defined(__ISM330__)
       logger.save_acc(acq,acq_len);
+      DEBUG("Dumped acc");
       logger.save_gyro(gq,gq_len);
+      #endif
+      DEBUG("Dumped gyro");
       logger.save_alti(aq,aq_len);
+      DEBUG("Dumped alti");
       logger.transferLogsToSD();
       #endif
+      logger.done();
+      while(1){}
       //Remember to save the remain of the buffers bf closing
       //Remember to close the file buffers
       break;

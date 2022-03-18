@@ -45,7 +45,7 @@ typedef struct {
   float filtAlti = 0;
   std::string toString() {
     std::ostringstream ss;
-    ss << tstp << "," << p << "," << t << "," << altitude << "," << filtAlti;
+    ss << tstp << "," << p << "," << t << "," << altitude << "," << filtAlti << "\n";
     std::string s(ss.str());
     return s;
   }

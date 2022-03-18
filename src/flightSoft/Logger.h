@@ -19,7 +19,7 @@ class Logger{
         
         void setup();
         void ready();
-        
+        void done();
         void save_states(State *state, int len);
         
         #if defined(__DSO32__) || defined(__ISM330__)
@@ -50,12 +50,27 @@ class Logger{
         int f_states_cd=-1;
         
         LittleFS_QSPI myfs;
+        File file;
         SdFat32 sd;
-
+        bool sd_ok;
         void cdToNewFolder();
         String currDump(String filename, int *prec_dump);
         template <typename T> int transferLogToSD(File file);
         
-        template <typename T> void save(T *q, int len, String filename);
+        template <typename T> void save(T *q, int len, char filename[],File fileb);
+        File statesFile;
+        
+        File gyroFile;  // Specifes that dataFile is of File type
+        File accFile;
+        char gyroFileName[100]; 
+        char accFileName[100];
+        
+        File altiFile;
+        char altiFileName[100];
+       
+        
+        File highAccFile;
+
+        char highAccFileName[10];
 };
 #endif

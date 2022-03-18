@@ -131,7 +131,7 @@ typedef struct {
   float filt = 0;
   std::string toString() {
     std::ostringstream ss;
-    ss << tstp << "," << x << "," << y << "," << z << "," << mod << "," << filt;
+    ss << tstp << "," << x << "," << y << "," << z << "," << mod << "," << filt << "\n";
     std::string s(ss.str());
     return s;
   }

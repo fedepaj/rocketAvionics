@@ -11,13 +11,33 @@ void Logger::setup(){
     while (1) {
       // Error, so don't do anything more - stay stuck here
     }
+    int count=0;
+  char b[100];
+  String fname="gyro_"+String(count)+".bin";
+  fname.toCharArray(b, fname.length());
+  while(File f=myfs.open(b, FILE_READ)){
+    f.close();
+    count++;
+    fname="acc_"+String(count)+".bin";
+    fname.toCharArray(b, fname.length());
+  }
+    String gN="gyro_"+String(count); 
+    gN.toCharArray(gyroFileName,gN.length());
+    String aN="alti_"+String(count);
+    aN.toCharArray(altiFileName,aN.length());
+    String acN="acc_"+String(count);
+    acN.toCharArray(accFileName,acN.length());
+    String hAcN="highAcc_"+String(count);
+    acN.toCharArray(highAccFileName,acN.length());
   }
   DEBUG("LittleFS initialized.");
 
   if (!sd.begin(SD_CONFIG)) {
     DEBUG("SD initialization failed!");
+    sd_ok=false;
   }else{
     DEBUG("SD initialized.");
+    sd_ok=true;
   }
 }
 
@@ -25,7 +45,13 @@ void Logger::ready(){
   digitalWrite(GREEN_LED,HIGH);
   }
 
+
+void Logger::done(){
+  digitalWrite(RED_LED,HIGH);
+  }
+
 void Logger::cdToNewFolder(){
+  if(!sd_ok) return;
   int c=0;
   String folderName = "Experiment_";
   while (sd.exists(folderName+String(c))) c++;
@@ -42,84 +68,90 @@ void Logger::cdToNewFolder(){
 }
 
 template <typename T> int Logger::transferLogToSD(File entry){
+  if(!sd_ok) return 1;
   T v;
   File32 ex;
+  DEBUG("SD0.1.0");
   if (!ex.open(String(entry.name()+String(".csv")).c_str(), O_WRONLY | O_CREAT)) {
     return 1;
   }
+  DEBUG("SD0.1.1");
   while (entry.available()) {
+    DEBUG("SD-.-.-.0");
     entry.read((byte *)&v, sizeof(T)); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1  
+    DEBUG("SD-.-.-.1");
     ex.print(String(v.toString().c_str()));
   }
+  DEBUG("SD-.-.2");
   // Here we need to delete the file
   entry.close();
+  DEBUG("SD-.-.3");
   ex.close();
+  DEBUG("SD-.-.4");
+  return 0;
 }
 
 int Logger::transferLogsToSD(){
   File dir = myfs.open("/");
   cdToNewFolder();
   while(File entry = dir.openNextFile()) {
-    if(String(entry.name()[6]).equals(String("states"))){
+    DEBUG("SD0");
+    std::string s = entry.name();
+    if(s.rfind("state", 0) == 0){
+      DEBUG("SD0.1");
       transferLogToSD<State>(entry);
     }
     
     #if defined(__DSO32__) || defined(__ISM330__)
-    else if(String(entry.name()[3]).equals(String("acc"))){
+    else if(s.rfind("imu_acc", 0) == 0){
+      DEBUG("SD1");
       transferLogToSD<imu_values>(entry);
     }
     
-    else if(String(entry.name()[4]).equals(String("gyro"))){
+    else if(s.rfind("imu_gyro", 0) == 0){
+      DEBUG("SD2");
       transferLogToSD<imu_values>(entry);
     }
     #endif
     
     #ifdef __BMP388__
-    else if(String(entry.name()[4]).equals(String("alti"))){
+    else if(s.rfind("alti", 0) == 0){
+      DEBUG("SD3");
       transferLogToSD<altiValues_t>(entry);
     }
     #endif
+    myfs.remove(file.name());
   }
 }
 
-String Logger::currDump(String filename, int *prec_dump){
-    if(*prec_dump==-1){
-      const char* fname=String(filename+String(*prec_dump++)+String(".bin")).c_str();
-      while(File f=myfs.open(fname, FILE_READ)){
-        f.close();
-        fname=String(filename+String(*prec_dump++)+String(".bin")).c_str();
-      }
-      return String(filename+String(*prec_dump));
-    }else{
-      return String(filename+String(*prec_dump++));
-    }
-}
+template <typename T> void Logger::save(T *q, int len, char filename[],File fileb){
+    DEBUG("QUI1");
+    fileb = myfs.open(filename, FILE_WRITE);
+    //detachInterrupt(digitalPinToInterrupt(BMP388_INT));
+    fileb.write((byte *)&q, sizeof(T)*len); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1
+    len=0;
+    Serial.println("Saving alti data");
+    altiFile.close();
 
-template <typename T> void Logger::save(T *q, int len, String filename){
-    File file = myfs.open(filename.c_str(), FILE_WRITE);
-    file.write((byte *)&q, sizeof(T)*len); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1
-    DEBUG("Saving data");
-    file.close();
-    digitalWrite(RED_LED,LOW);
-    
 }
 
 void Logger::save_states(State *states, int len){
-  save<State>(states, len, currDump(f_states_name,&f_states_cd));
+
+  //save<State>(states, len, );
 }
 
 #if defined(__DSO32__) || defined(__ISM330__)
 void Logger::save_acc(imu_values *v, int len){
-  save<imu_values>(v,len, currDump(f_imu_acc_name,&f_imu_acc_cd));
+  save<imu_values>(v,len,gyroFileName);
 }
 
 void Logger::save_gyro(imu_values *v, int len){
-  save<imu_values>(v,len, currDump(f_imu_gyro_name,&f_imu_gyro_cd));
+  save<imu_values>(v,len,accFileName);
 }
 #endif
 
 #ifdef __BMP388__
 void Logger::save_alti(altiValues_t *v, int len){
-  save<altiValues_t>(v,len, currDump(f_alti_name,&f_alti_cd));
+  save<altiValues_t>(v,len, altiFileName,altiFile);
 }
 #endif

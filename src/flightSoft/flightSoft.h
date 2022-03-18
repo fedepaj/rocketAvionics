@@ -4,13 +4,11 @@
 
 #include "data.h"
 
-#ifdef LOGGING
+#ifdef __LOGGING__
 #include "Logger.h"
 #endif
 
-#ifdef LOGGING
-Logger logger;
-#endif
+
 #ifdef __BMP388__
 BMP388 altimeter;
 #endif
@@ -21,6 +19,10 @@ DSO32 imu;
 
 #ifdef __H3LIS331DL__
 H3LIS331DL hf_acc;
+#endif
+
+#ifdef __LOGGING__
+Logger logger;
 #endif
 
 State states[10];
