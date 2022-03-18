@@ -1,4 +1,8 @@
 #include "flightSoft.h"
+#include "TeensyTimerTool.h"
+using namespace TeensyTimerTool;
+
+PeriodicTimer cLogicTimer;
 
 void setup_sensors(){
 
@@ -36,6 +40,8 @@ void setup() {
   SPI.begin();
   setup_sensors();
 
+  cLogicTimer.begin(cLogicCallBack, 20ms);
+  
   #ifdef __BMP388__
   attachInterrupt(digitalPinToInterrupt(BMP388_INT), altimeterCB, RISING);
   #endif
@@ -51,39 +57,24 @@ void setup() {
   #ifdef __LOGGING__
   logger.ready();
   #endif
-/*
-  delay(1);
-  noInterrupts();
-  removeBeforeFlight();
-  interrupts();
-  */
+
 }
 
 void loop() {
 //  logger.save();
   
    switch(state){
-      case ON_PAD:
-        delay(5000);
-        state=LANDED;
-        stateS.state=state;
-        stateS.tstp = millis();
-        states[sq_len]=stateS;
-        break;
+    case ON_PAD:
+      //non fa niente
+      break;
     case ASCENT:
-    
-    //if(){  //apogee condition met
-        
-      //  state=DESCENT;
-     // }
+      //logga se serve
       break;
     case DESCENT:
-   // if(){  //landing condition met
-        
-     //   state=LANDED;
-     // }
-      //break;
+      //logga se serve
+      break;
     case LANDED:
+      //scrivi i log su SD
       #ifdef __LOGGING__
       DEBUG("Beginnning dump");
       logger.save_states(states,sq_len);
@@ -107,6 +98,48 @@ void loop() {
       break;
     }
   }
+
+void cLogicCallBack(){
+  /*TEST
+  Serial.print("AccelFiltrata:"); Serial.print(acc_last_500.last().filt);Serial.print(", ");
+  Serial.print("Accel:"); Serial.print(acc_last_500.last().mod);
+  Serial.println();
+  */
+  switch(state){
+    case ON_PAD:
+      if(acc_last_500.last().filt >= 50){
+        state=ASCENT;
+        stateS.state=state;
+        stateS.tstp = millis();
+        states[sq_len++]=stateS;
+      }
+      Serial.println("on pad");
+      break;
+    case ASCENT:
+      if(altimeter_last_500.last().filtVel <= -1.0){
+        state=DESCENT;
+        stateS.state=state;
+        stateS.tstp = millis();
+        states[sq_len++]=stateS;
+      }
+      Serial.println("ASCENT");
+      break;
+    case DESCENT:
+      if(altimeter_last_500.last().filtVel >= -0.5 && altimeter_last_500.last().filtVel <= 0.5){
+        state=LANDED;
+        stateS.state=state;
+        stateS.tstp = millis();
+        states[sq_len++]=stateS;
+      }
+      Serial.println("descent");
+      break;
+    case LANDED:
+      //non fa niente
+      Serial.println("LANDED");
+      break;
+    }
+  
+}  
   
 //TODO: test this
 // This could reduce the callback code of 1/4 sice we would need only to pass the rigth parameters in the callbacks
