@@ -8,7 +8,7 @@ int DSO32::setup(){
   pinMode(DSO32_CS, OUTPUT);
   pinMode(DSO32_INT_GYRO, INPUT);
   pinMode(DSO32_INT_ACC, INPUT);
-  SPI.begin();
+  
   digitalWrite(DSO32_CS, HIGH);
   SPI.beginTransaction(SPISettings(DSO32_SPI_SPEED, MSBFIRST, SPI_MODE3));
   digitalWrite(DSO32_CS, LOW);
@@ -49,7 +49,7 @@ int DSO32::setup(){
   return 0; // the return value of the setup function will be used for error handling
 }
 
-imu_values DSO32::measureGyro(imu_values prec){
+imu_values DSO32::measureGyro(){
   imu_values values;
   byte buff[6];
   SPI.beginTransaction(SPISettings(DSO32_SPI_SPEED, MSBFIRST, SPI_MODE3));
@@ -84,7 +84,7 @@ imu_values DSO32::measureGyro(imu_values prec){
   return values;
 }
 
-imu_values DSO32::measureAcc(imu_values prec){
+imu_values DSO32::measureAcc(){
   imu_values values;
   byte buff[6];
   SPI.beginTransaction(SPISettings(DSO32_SPI_SPEED, MSBFIRST, SPI_MODE3));
@@ -106,7 +106,7 @@ imu_values DSO32::measureAcc(imu_values prec){
   float a = 0.8928;
   float b = 0.0536;
   float c = 1 - a - b;
-  values.filt = a*prec.filt + b*prec.mod + c*values.mod;
+  values.filt = a*precAcc.filt + b*precAcc.mod + c*values.mod;
   /*
   float R=1.0;
   float Q=1e-05;

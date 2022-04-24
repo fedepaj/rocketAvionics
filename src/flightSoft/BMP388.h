@@ -60,8 +60,9 @@ class BMP388
     float getP();
     float getT();
     float getAltitude(float p,float t);
-    altiValues_t measure(altiValues_t prec);
+    altiValues_t measure();
   private:
+    altiValues_t prec = {};
     calibData_t calibData;
     uint32_t rawPressure, rawTemp;
     float pressure; //in Pa

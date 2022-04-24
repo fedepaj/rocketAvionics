@@ -20,15 +20,16 @@ class Logger{
         void setup();
         void ready();
         void done();
-        void save_states(State *state, int len);
+        void blink();
+        void save_states(State states[], int len);
         
         #if defined(__DSO32__) || defined(__ISM330__)
-        void save_acc(imu_values *v, int len);
-        void save_gyro(imu_values *v, int len);
+        void save_acc(imu_values v[], int len);
+        void save_gyro(imu_values v[], int len);
         #endif
         
         #ifdef __BMP388__
-        void save_alti(altiValues_t *v, int len);
+        void save_alti(altiValues_t v[], int len);
         #endif
         
         int transferLogsToSD();
@@ -36,28 +37,24 @@ class Logger{
     private:
         
         LittleFS_QSPI myfs;
-
+        //File file;
+        int format();
         SdFat32 sd;
         bool sd_ok;
-        void cdToNewFolder();
-        String currDump(String filename, int *prec_dump);
+        void currFolderNumber();
+        void currFileNumber();
+        
         template <typename T> int transferLogToSD(File file);
         
-        template <typename T> void save(T *q, int len, char filename[],File fileb);
+        template <typename T> void save(T q[], int len, String filename);
         
-        File statesFile;
-        char statesFileName[100];
-        File gyroFile;  // Specifes that dataFile is of File type
-        File accFile;
-        char gyroFileName[100]; 
-        char accFileName[100];
+        String statesFileName = "states_";
+        String gyroFileName = "gyro_";
+        String accFileName = "acc_";
+        String altiFileName = "alti_";
+        String highAccFileName = "highAcc_";
         
-        File altiFile;
-        char altiFileName[100];
-       
-        
-        File highAccFile;
-
-        char highAccFileName[10];
+        int file_count = 0;
+        int folder_count = 0;
 };
 #endif

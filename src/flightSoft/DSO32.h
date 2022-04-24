@@ -141,8 +141,11 @@ class DSO32
 {
   public:
     int setup();
-    imu_values measureGyro(imu_values prec);
-    imu_values measureAcc(imu_values prec);
+    imu_values measureGyro();
+    imu_values measureAcc();
+  private:
+    imu_values precGyro = {};
+    imu_values precAcc = {};
 };
 
 #endif

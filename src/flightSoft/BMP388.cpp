@@ -65,7 +65,7 @@ void BMP388::calib(){
 }
 
 
-altiValues_t BMP388::measure(altiValues_t filtPrec){
+altiValues_t BMP388::measure(){
   altiValues_t altiValues;
   altiValues.tstp = millis();
   altiValues.p=getP();
@@ -75,7 +75,7 @@ altiValues_t BMP388::measure(altiValues_t filtPrec){
   float a = 0.9802; //0.9048
   float b = 0.0099; //0.0476
   float c = 1 - a - b;
-  altiValues.filtAlti = a*filtPrec.filtAlti + b*filtPrec.altitude + c*altiValues.altitude;
+  altiValues.filtAlti = a*prec.filtAlti + b*prec.altitude + c*altiValues.altitude;
   /*
   float R=1;
   float Q=1e-05;
@@ -84,16 +84,17 @@ altiValues_t BMP388::measure(altiValues_t filtPrec){
   float Pp=p+Q;
   //xp=x;
   float K=Pp/(Pp+R);
-  float e=altiValues.altitude-filtPrec.filtAlti;
+  float e=altiValues.altitude-prec.filtAlti;
   p=(1-K)*Pp;
   altiValues.filtAlti=filtPrec.filtAlti+K*e;
-  //altiValues.filtAlti=0.90476*filtPrec+0.04761*altiValues.altitude+0.04761*prec;
+  //altiValues.filtAlti=0.90476*prec+0.04761*altiValues.altitude+0.04761*prec;
   */
-  //float vel = filtPrec.altitude - altiValues.altitude;
-  //float filtVel = filtPrec.filtAlti - altiValues.filtAlti;
-  altiValues.filtVel = filtPrec.filtAlti - altiValues.filtAlti;
+  //float vel = prec.altitude - altiValues.altitude;
+  //float filtVel = prec.filtAlti - altiValues.filtAlti;
+  altiValues.filtVel = prec.filtAlti - altiValues.filtAlti;
   
   ALTFILTDEBUG("Altitudine:"+String(altiValues.altitude)+", "+"Filtrata:"+String(altiValues.filtAlti));
+  prec=altiValues;
   return altiValues;
 }
 
