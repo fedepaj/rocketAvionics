@@ -1,13 +1,9 @@
 #include "settings.h"
-#include <CircularBuffer.h>
-
-
-#include "data.h"
+#include "commons.h"
 
 #ifdef __LOGGING__
 #include "Logger.h"
 #endif
-
 
 #ifdef __BMP388__
 BMP388 altimeter;
@@ -50,3 +46,4 @@ volatile int hf_acq_len=0;
 
 State stateS = {};
 FligthState state = ON_PAD ;
+LedState ledState;

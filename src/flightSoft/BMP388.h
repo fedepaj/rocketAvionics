@@ -2,6 +2,13 @@
 #define BMP388_H
 #include "settings.h"
 
+//#define __ALTFILTDEBUG__
+
+#ifdef __ALTFILTDEBUG__
+#define ALTFILTDEBUG(...) Serial.println(__VA_ARGS__)
+#else
+#define ALTFILTDEBUG(...)
+#endif
 #define BMP388_CS 19
 #define BMP388_INT 20
 #define BMP388_SPI_SPEED 1000000
@@ -61,8 +68,9 @@ class BMP388
     float getT();
     float getAltitude(float p,float t);
     altiValues_t measure();
-  private:
+    altiValues_t curr = {};
     altiValues_t prec = {};
+  private:
     calibData_t calibData;
     uint32_t rawPressure, rawTemp;
     float pressure; //in Pa

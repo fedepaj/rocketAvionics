@@ -50,6 +50,7 @@ int DSO32::setup(){
 }
 
 imu_values DSO32::measureGyro(){
+  precGyro=currGyro;
   imu_values values;
   byte buff[6];
   SPI.beginTransaction(SPISettings(DSO32_SPI_SPEED, MSBFIRST, SPI_MODE3));
@@ -81,10 +82,12 @@ imu_values DSO32::measureGyro(){
   p=(1-K)*Pp;
   values.filt=prec.filt+K*e;
   */
+  currGyro=values;
   return values;
 }
 
 imu_values DSO32::measureAcc(){
+  precAcc=currAcc;
   imu_values values;
   byte buff[6];
   SPI.beginTransaction(SPISettings(DSO32_SPI_SPEED, MSBFIRST, SPI_MODE3));
@@ -119,6 +122,7 @@ imu_values DSO32::measureAcc(){
   values.filt=prec.filt+K*e;
   */
   ACCFILTDEBUG("Acc:"+String(values.mod)+", "+"Filtrata:"+String(values.filt));
+  currAcc=values;
   return values;
 }
 #endif

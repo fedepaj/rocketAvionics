@@ -70,16 +70,15 @@ void Logger::currFileNumber(){
 
 void Logger::setup(){
     DEBUG("IN SETUP");
-    pinMode(GREEN_LED,OUTPUT);
-    pinMode(RED_LED,OUTPUT);
     
     // see if the Flash is present and can be initialized:
     if (!myfs.begin()) {
       DEBUG("Error starting QSPI FLASH");
-      while(1) {blink();}
+      while(1) {LED00();}
     }
-    //format();
+    format(); // Remember to comment this before fligth
     currFileNumber();
+    createFiles();
     DEBUG("LittleFS initialized.");
     delay(500);
     if (!sd.begin(SD_CONFIG)) {
@@ -91,22 +90,6 @@ void Logger::setup(){
       sd_ok=true;
       currFolderNumber();
     }
-}
-
-void Logger::ready(){
-  digitalWrite(GREEN_LED,HIGH);
-}
-
-
-void Logger::done(){
-  digitalWrite(RED_LED,HIGH);
-}
-
-void Logger::blink(){
-  digitalWrite(RED_LED,HIGH);
-  delay(1000);
-  digitalWrite(RED_LED,LOW);
-  delay(1000);
 }
 
 void Logger::currFolderNumber(){
@@ -133,16 +116,47 @@ template <typename T> int Logger::transferLogToSD(File entry){
     return 1;
   }
   while (entry.available()) {
-    entry.read(&v, sizeof(T)); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1  
+    entry.read(&v, sizeof(T)); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1
     ex.print(String(v.toString().c_str()));
   }
-  // Here we delete the file
+  delay(100);
   entry.close();
   delay(100);
   ex.close();
   delay(100);
   return 0;
 }
+void Logger::createFiles(){
+    char buff[100];
+    String fname = String(statesFileName + String(file_count)+".bin");
+    DEBUG("2");
+    fname.toCharArray(buff,fname.length()+1);
+    DEBUG(buff);
+    delay(100);
+    statesf = myfs.open(buff, FILE_WRITE);
+    //statesf.close();
+    fname = String(gyroFileName + String(file_count)+".bin");
+    DEBUG("2");
+    fname.toCharArray(buff,fname.length()+1);
+    DEBUG(buff);
+    delay(100);
+    gyrof = myfs.open(buff, FILE_WRITE);
+    //gyrof.close();
+    fname = String(accFileName + String(file_count)+".bin");
+    DEBUG("2");
+    fname.toCharArray(buff,fname.length()+1);
+    DEBUG(buff);
+    delay(100);
+    accf = myfs.open(buff, FILE_WRITE);
+    //accf.close();
+    fname = String(altiFileName + String(file_count)+".bin");
+    DEBUG("2");
+    fname.toCharArray(buff,fname.length()+1);
+    DEBUG(buff);
+    delay(100);
+    altif = myfs.open(buff, FILE_WRITE);
+    //altif.close();
+  }
 
 int Logger::transferLogsToSD(){
   listFiles(myfs);
@@ -150,7 +164,7 @@ int Logger::transferLogsToSD(){
   File dir = myfs.open("/");
   while(File entry = dir.openNextFile()) {
     delay(100);
-    DEBUG("IN FS ROOT");
+    DEBUG("CP SD");
     std::string s = entry.name();
     DEBUG(String(s.c_str()));
     if(s.rfind("states", 0) == 0){
@@ -170,6 +184,7 @@ int Logger::transferLogsToSD(){
       transferLogToSD<altiValues_t>(entry);
     }
     #endif
+    delay(100);
     myfs.remove(entry.name());
     delay(100);
     entry.close();
@@ -179,48 +194,55 @@ int Logger::transferLogsToSD(){
   return 0;
 }
 
-template <typename T> void Logger::save(T q[], int len, String filename){
+
+template <typename T> void Logger::save(T q[], int len, String filename, File &file){
     char buff[100];
-    DEBUG("QUI1");
+    DEBUG("1");
     String fname = String(filename + String(file_count)+".bin");
-    DEBUG("QUI2");
+    DEBUG("2");
     fname.toCharArray(buff,fname.length()+1);
-    DEBUG("QUI3");
-    
-    File file = myfs.open(buff, FILE_WRITE);
-    DEBUG("QUI4");
+    DEBUG(buff);
     delay(100);
+    //file = myfs.open(buff, FILE_WRITE);
+    DEBUG("4");
+    delay(100);
+    DEBUG("5");
     for(int i=0;i<len;i++){
+      // Scrivere a multipli di 256 B
       file.write(&q[i], sizeof(T)); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1
+      delay(1);
     }
+    DEBUG("6");
     delay(100);
-    DEBUG("QUI5");
+    DEBUG("7");
     file.close();
+    DEBUG("8");
     delay(100);
-    DEBUG("QUI6");
+    DEBUG("9");
 
 }
 
 void Logger::save_states(State states[], int len){
-  save<State>(states, len, statesFileName);
-  DEBUG("Saving states");
+  file_count++;
+  save<State>(states, len, statesFileName, statesf);
+  DEBUG("OK states");
 }
 
 #if defined(__DSO32__) || defined(__ISM330__)
 void Logger::save_acc(imu_values v[], int len){
-  save<imu_values>(v, len, accFileName);
-  DEBUG("Saving acc data");
+  save<imu_values>(v, len, accFileName, accf);
+  DEBUG("OK acc data");
 }
 
 void Logger::save_gyro(imu_values v[], int len){
-  save<imu_values>(v, len, gyroFileName);
-  DEBUG("Saving gyro data");
+  save<imu_values>(v, len, gyroFileName, gyrof);
+  DEBUG("OK gyro data");
 }
 #endif
 
 #ifdef __BMP388__
 void Logger::save_alti(altiValues_t v[], int len){
-  save<altiValues_t>(v, len, altiFileName);
-  DEBUG("Saving altimeter data");
+  save<altiValues_t>(v, len, altiFileName, altif);
+  DEBUG("OK altimeter data");
 }
 #endif

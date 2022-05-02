@@ -66,6 +66,7 @@ void BMP388::calib(){
 
 
 altiValues_t BMP388::measure(){
+  prec=curr;
   altiValues_t altiValues;
   altiValues.tstp = millis();
   altiValues.p=getP();
@@ -94,7 +95,7 @@ altiValues_t BMP388::measure(){
   altiValues.filtVel = prec.filtAlti - altiValues.filtAlti;
   
   ALTFILTDEBUG("Altitudine:"+String(altiValues.altitude)+", "+"Filtrata:"+String(altiValues.filtAlti));
-  prec=altiValues;
+  curr=altiValues;
   return altiValues;
 }
 
