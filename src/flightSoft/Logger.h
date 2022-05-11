@@ -4,7 +4,6 @@
 #define FILE_APPEND 0x08
 #include <SD.h>
 #include <SdFat.h>
-#include <LittleFS.h>
 #include <iostream>
 #include <string>
 #
@@ -28,23 +27,14 @@ class Logger{
         void save_alti(altiValues_t v[], int len);
         #endif
         
-        int transferLogsToSD();
-        void createFiles();
     private:
         
-        LittleFS_QSPI myfs;
-        //File file;
-        int format();
         SdFat32 sd;
         bool sd_ok;
         void currFolderNumber();
-        void currFileNumber();
-        
-        template <typename T> int transferLogToSD(File file);
-        
-        template <typename T> void save(T q[], int len, String filename, File &file);
 
-        File statesf, gyrof, accf, altif;
+        template <typename T> void save(T q[], int len, String filename);
+
         String statesFileName = "states_";
         String gyroFileName = "gyro_";
         String accFileName = "acc_";

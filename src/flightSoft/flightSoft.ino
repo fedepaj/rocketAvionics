@@ -94,8 +94,6 @@ void loop() {
   logger.save_alti(aq, aq_len);
   aq_len=0;
   DEBUG("Dumped alti");
-  logger.transferLogsToSD();
-  logger.createFiles();
   #endif
   #endif
 }
