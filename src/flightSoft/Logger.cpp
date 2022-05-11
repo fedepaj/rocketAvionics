@@ -68,7 +68,7 @@ void Logger::currFileNumber(){
     DEBUG("COUNT: " + String(file_count));
 }
 
-void Logger::setup(){
+void Logger::init(){
     DEBUG("IN SETUP");
     
     // see if the Flash is present and can be initialized:
@@ -76,7 +76,7 @@ void Logger::setup(){
       DEBUG("Error starting QSPI FLASH");
       while(1) {LED00();}
     }
-    format(); // Remember to comment this before fligth
+    format(); // ATTENZIONE: Remember to comment this before fligth
     currFileNumber();
     createFiles();
     DEBUG("LittleFS initialized.");
@@ -98,7 +98,7 @@ void Logger::currFolderNumber(){
   String folderName = "Experiment_";
   while (sd.exists(folderName+String(c))) c++;
   if (!sd.mkdir(folderName+String(c))) {
-    DEBUG("Folder cration failed!");
+    DEBUG("Folder creation failed!");
     while(1){}
   }
   if (!sd.chdir(folderName+String(c))) {
@@ -208,8 +208,8 @@ template <typename T> void Logger::save(T q[], int len, String filename, File &f
     delay(100);
     DEBUG("5");
     for(int i=0;i<len;i++){
-      // Scrivere a multipli di 256 B
-      file.write(&q[i], sizeof(T)); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1
+      // TODO: Bisognerebbe scrivere a multipli di 256 B
+      Serial.print(file.write(&q[i], sizeof(T))); //https://gist.github.com/CelliesProjects/7fab9013517583b3a0922c0f153606a1
       delay(1);
     }
     DEBUG("6");

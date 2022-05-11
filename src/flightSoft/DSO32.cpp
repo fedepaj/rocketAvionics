@@ -4,7 +4,7 @@
  * FUNZIONI PER LA IMU
  */
 
-int DSO32::setup(){
+int DSO32::init(){
   pinMode(DSO32_CS, OUTPUT);
   pinMode(DSO32_INT_GYRO, INPUT);
   pinMode(DSO32_INT_ACC, INPUT);

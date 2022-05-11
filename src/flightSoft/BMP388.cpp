@@ -5,7 +5,7 @@
  */
 
 
-int BMP388::setup(){
+int BMP388::init(){
   pinMode(BMP388_CS, OUTPUT);
   pinMode(BMP388_INT, INPUT);
   

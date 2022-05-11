@@ -7,43 +7,47 @@ TeensyTimerTool::PeriodicTimer ledsTimer;
 void setup_sensors(){
 
     #if defined(__DSO32__) || defined(__ISM330__)
-    imu.setup();
+    imu.init();
     DEBUG("Imu setted up.");
     #endif
     
     #ifdef __BMP388__
-    altimeter.setup();
+    altimeter.init();
     DEBUG("Altimeter setted up.");
     #endif
     
     #ifdef __H3LIS331DL__
-    hf_acc.setup();
+    hf_acc.init();
     DEBUG("HF imu setted up.");
     #endif
 }
 
 void setup() {
+  #ifdef __DEBUG__
 
+  uint32_t lastResetCause;
+
+  // ... do this first in setup() ...
+  // Save copy of Reset Status Register
+  lastResetCause = SRC_SRSR;
+  // Clear all Reset Status Register bits
+  SRC_SRSR = (uint32_t)0x1FF;
+
+  #endif
   pinMode(0, INPUT_PULLUP);
   pinMode(GREEN_LED,OUTPUT);
   pinMode(RED_LED,OUTPUT);
   LED00();
   delay(100);
-  //Serial.begin(512000);
   removeBeforeFlight();
   #ifdef __DEBUG__
   Serial.begin(512000);
+  delay(100);
+  resetCause(lastResetCause);
   #endif
-  //SPI.begin();
-  
-  
   
   #ifdef __LOGGING__
-  
-  //logger.transferLogsToSD();
-  #endif
-  #ifdef __LOGGING__
-  logger.setup();
+  logger.init();
   #endif
   delay(500);
   SPI.begin();
@@ -51,7 +55,7 @@ void setup() {
   setup_sensors();
   
   DEBUG("Sensors setted up.");
-  //ledsTimer.begin(ledsCallBack, 1000ms);
+  ledsTimer.begin(ledsCallBack, 1000ms);
   cLogicTimer.begin(cLogicCallBack, 20ms);
 
   
@@ -73,10 +77,7 @@ void setup() {
 
 void loop() {
   #ifdef __LOGGING__
-  delay(10000);
-  //detachInterrupt(digitalPinToInterrupt(BMP388_INT));
-  //detachInterrupt(digitalPinToInterrupt(DSO32_INT_ACC));
-  //detachInterrupt(digitalPinToInterrupt(DSO32_INT_GYRO));
+  delay(5000);
   DEBUG("Beginnning dump");
   logger.save_states(states, sq_len);
   sq_len=0;
@@ -95,10 +96,6 @@ void loop() {
   DEBUG("Dumped alti");
   logger.transferLogsToSD();
   logger.createFiles();
-  #endif
-  #if defined(__DSO32__) || defined(__ISM330__)
-  //attachInterrupt(digitalPinToInterrupt(DSO32_INT_ACC), accCB, RISING);
-  //attachInterrupt(digitalPinToInterrupt(DSO32_INT_GYRO), gyroCB, RISING);
   #endif
   #endif
 }
@@ -130,38 +127,38 @@ void cLogicCallBack(){
   Serial.print("Accel:"); Serial.print(acc_last_500.last().mod);
   Serial.println();
   */
-//  switch(state){
-//    case ON_PAD:
-//      if(imu.currAcc.filt >= 50){
-//        state=ASCENT;
-//        stateS.state=state;
-//        stateS.tstp = millis();
-//        states[sq_len++]=stateS;
-//      }
-//      break;
-//    case ASCENT:
-//      if(altimeter.curr.filtVel <= -1.0){
-//        state=DESCENT;
-//        stateS.state=state;
-//        stateS.tstp = millis();
-//        states[sq_len++]=stateS;
-//      }
-//      Serial.println("ASCENT");
-//      break;
-//    case DESCENT:
-//      if(altimeter.curr.filtVel >= -0.5 && altimeter.curr.filtVel <= 0.5){
-//        state=LANDED;
-//        stateS.state=state;
-//        stateS.tstp = millis();
-//        states[sq_len++]=stateS;
-//      }
-//      //Serial.println("descent");
-//      break;
-//    case LANDED:
-//      //non fa niente
-//      //Serial.println("LANDED");
-//      break;
-//    }
+  switch(state){
+    case ON_PAD:
+      if(imu.currAcc.filt >= 50){
+        state=ASCENT;
+        stateS.state=state;
+        stateS.tstp = millis();
+        states[sq_len++]=stateS;
+      }
+      break;
+    case ASCENT:
+      if(altimeter.curr.filtVel <= -1.0){
+        state=DESCENT;
+        stateS.state=state;
+        stateS.tstp = millis();
+        states[sq_len++]=stateS;
+      }
+      Serial.println("ASCENT");
+      break;
+    case DESCENT:
+      if(altimeter.curr.filtVel >= -0.5 && altimeter.curr.filtVel <= 0.5){
+        state=LANDED;
+        stateS.state=state;
+        stateS.tstp = millis();
+        states[sq_len++]=stateS;
+      }
+      //Serial.println("descent");
+      break;
+    case LANDED:
+      //non fa niente
+      //Serial.println("LANDED");
+      break;
+    }
   
 }  
 
@@ -214,4 +211,55 @@ void removeBeforeFlight(){
     DEBUG("WAITING");
     delay(100);
   }
+}
+
+/* ==================================================================== */
+// i.MX RT1060 Processor Reference Manual, 21.8.3 SRC Reset Status Register
+void resetCause(uint32_t resetStatusReg) {
+    bool info = false;
+
+    if (resetStatusReg & SRC_SRSR_TEMPSENSE_RST_B) {
+        Serial.println("Temperature Sensor Software Reset");
+        info = true;
+    }
+    if (resetStatusReg & SRC_SRSR_WDOG3_RST_B) {
+        Serial.println("IC Watchdog3 Timeout Reset");
+        info = true;
+    }
+    if (resetStatusReg & SRC_SRSR_JTAG_SW_RST) {
+        Serial.println("JTAG Software Reset");
+        info = true;
+    }
+    if (resetStatusReg & SRC_SRSR_JTAG_RST_B) {
+        Serial.println("High-Z JTAG Reset");
+        info = true;
+    }
+    if (resetStatusReg & SRC_SRSR_WDOG_RST_B) {
+        Serial.println("IC Watchdog Timeout Reset");
+        info = true;
+    }
+    if (resetStatusReg & SRC_SRSR_IPP_USER_RESET_B) {
+        Serial.println("Power-up Sequence (Cold Reset Event)");
+        info = true;
+    }
+    if (resetStatusReg & SRC_SRSR_CSU_RESET_B) {
+        Serial.println("Central Security Unit Reset");
+        info = true;
+    }
+    if (resetStatusReg & SRC_SRSR_LOCKUP_SYSRESETREQ) {
+        Serial.println("CPU Lockup or Software Reset");
+        info = true;
+        /* Per datasheet: "SW needs to write a value to SRC_GPR5
+         * before writing the SYSRESETREQ bit and use the SRC_GPR5
+         * value to distinguish if the reset is caused by SYSRESETREQ
+         * or CPU lockup."
+         */
+    }
+    if (resetStatusReg & SRC_SRSR_IPP_RESET_B) {
+        Serial.println("Power-up Sequence");
+        info = true;
+    }
+    if (!info) {
+        Serial.println("No status bits set in SRC Reset Status Register");
+    }
 }

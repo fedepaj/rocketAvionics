@@ -63,7 +63,7 @@ typedef struct {
 class BMP388
 {
   public:
-    int setup();
+    int init();
     float getP();
     float getT();
     float getAltitude(float p,float t);

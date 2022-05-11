@@ -47,3 +47,4 @@ volatile int hf_acq_len=0;
 State stateS = {};
 FligthState state = ON_PAD ;
 LedState ledState;
+void resetCause(uint32_t resetStatusReg);

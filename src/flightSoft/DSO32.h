@@ -148,7 +148,7 @@ typedef struct {
 class DSO32
 {
   public:
-    int setup();
+    int init();
     imu_values measureGyro();
     imu_values measureAcc();
     imu_values currGyro = {};

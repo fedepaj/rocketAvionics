@@ -16,7 +16,7 @@
 class Logger{
     public:
         
-        void setup();
+        void init();
         void save_states(State states[], int len);
         
         #if defined(__DSO32__) || defined(__ISM330__)
