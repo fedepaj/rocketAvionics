@@ -31,7 +31,7 @@ void Logger::currFolderNumber(){
 
 template <typename T> void Logger::save(T q[], int len, String filename){
      File32 ex;
-      if (!ex.open(String(String(filename)+String(file_count)+String(".csv")).c_str(), O_WRONLY | O_CREAT)) {
+      if (!ex.open(String(String(filename)+String(file_count)+String(".csv")).c_str(), O_WRONLY | O_CREAT | O_APPEND)) {
         return;
       }
       for(int i=0;i<len;i++){
@@ -43,7 +43,7 @@ template <typename T> void Logger::save(T q[], int len, String filename){
 }
 
 void Logger::save_states(State states[], int len){
-  file_count++;
+  //file_count++;
   save<State>(states, len, statesFileName);
 }
 

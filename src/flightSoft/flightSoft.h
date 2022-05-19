@@ -25,23 +25,39 @@ State states[10];
 volatile int sq_len=0;
 
 #ifdef __BMP388__
-EXTMEM altiValues_t aq[QSIZE];
-volatile int aq_len=0;
+EXTMEM altiValues_t f_aq[QSIZE];
+EXTMEM altiValues_t s_aq[QSIZE];
+volatile int f_aq_len=0;
+volatile int s_aq_len=0;
+int curr_aq=0;
+altivalues_t* aq = f_aq;
+int* aq_len = f_aq_len;
+
 #endif
 
 #if defined(__DSO32__) || defined(__ISM330__)
-EXTMEM imu_values gq[QSIZE];
-volatile int gq_len=0;
+EXTMEM imu_values f_gq[QSIZE];
+EXTMEM imu_values s_gq[QSIZE];
+volatile int f_gq_len=0;
+volatile int s_gq_len=0;
+int curr_gq=0;
+imu_values* gq = f_gq;
+int* aq_len = f_gq_len;
 
-
-EXTMEM imu_values acq[QSIZE];
-volatile int acq_len=0;
-
+EXTMEM imu_values f_acq[QSIZE];
+EXTMEM imu_values s_acq[QSIZE];
+volatile int f_acq_len=0;
+volatile int s_acq_len=0;
+int curr_acq=0;
+imu_values* acq = f_acq;
+int* acq_len = f_acq_len;
 #endif
 
 #ifdef __H3LIS331DL__
-EXTMEM hf_imu_values hf_acq[QSIZE];
-volatile int hf_acq_len=0;
+EXTMEM hf_imu_values f_hf_acq[QSIZE];
+EXTMEM hf_imu_values s_hf_acq[QSIZE];
+volatile int hf_acq_len[]={0, 0};
+volatile int curr_hf_acq=0;
 #endif
 
 State stateS = {};

@@ -72,29 +72,44 @@ void setup() {
   #endif
   DEBUG("Interrupts setted up.");
   DEBUG("---");
-  
+  lastMillis=millis();
 }
 
 void loop() {
   #ifdef __LOGGING__
-  delay(5000);
-  DEBUG("Beginnning dump");
-  logger.save_states(states, sq_len);
-  sq_len=0;
-  DEBUG("Dumped states");
-  #if defined(__DSO32__) || defined(__ISM330__)
-  logger.save_acc(acq, acq_len);
-  acq_len=0;
-  DEBUG("Dumped acc");
-  logger.save_gyro(gq, gq_len);
-  gq_len=0;
-  DEBUG("Dumped gyro");
-  #endif
-  #ifdef __BMP388__
-  logger.save_alti(aq, aq_len);
-  aq_len=0;
-  DEBUG("Dumped alti");
-  #endif
+  if (millis()-lastMillis>2000){
+    lastMillis=millis();
+    DEBUG("Beginnning dump");
+    logger.save_states(states, sq_len);
+    sq_len=0;
+    DEBUG("Dumped states");
+    #if defined(__DSO32__) || defined(__ISM330__)
+    if(curr_aq==0){
+      aq = &s_aq;
+      aq_len = &s_aq_len;
+      curr_aq=1;
+      logger.save_acc(f_aq, f_aq_len);
+      f_aq_len=0;
+    }else{
+      aq = &f_aq;
+      aq_len = &f_aq_len;
+      curr_aq=0;
+      logger.save_acc(s_aq, s_aq_len);
+      s_aq_len=0;
+    }
+    
+    
+    DEBUG("Dumped acc");
+    logger.save_gyro(gq, gq_len);
+    gq_len=0;
+    DEBUG("Dumped gyro");
+    #endif
+    #ifdef __BMP388__
+    logger.save_alti(aq, aq_len);
+    aq_len=0;
+    DEBUG("Dumped alti");
+    #endif
+  }
   #endif
 }
 

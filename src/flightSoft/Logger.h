@@ -1,7 +1,6 @@
 #ifndef Logger_H
 #define Logger_H
 
-#define FILE_APPEND 0x08
 #include <SD.h>
 #include <SdFat.h>
 #include <iostream>

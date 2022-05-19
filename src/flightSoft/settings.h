@@ -8,6 +8,6 @@
 #define __LOGGING__
 #define __DEBUG__
 
-#define QSIZE 100000
+#define QSIZE 10000
 
 #endif
