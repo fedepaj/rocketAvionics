@@ -30,8 +30,8 @@ EXTMEM altiValues_t s_aq[QSIZE];
 volatile int f_aq_len=0;
 volatile int s_aq_len=0;
 int curr_aq=0;
-altivalues_t* aq = f_aq;
-int* aq_len = f_aq_len;
+altiValues_t* aq = f_aq;
+volatile int* aq_len = &f_aq_len;
 
 #endif
 
@@ -42,7 +42,7 @@ volatile int f_gq_len=0;
 volatile int s_gq_len=0;
 int curr_gq=0;
 imu_values* gq = f_gq;
-int* aq_len = f_gq_len;
+volatile int* gq_len = &f_gq_len;
 
 EXTMEM imu_values f_acq[QSIZE];
 EXTMEM imu_values s_acq[QSIZE];
@@ -50,7 +50,7 @@ volatile int f_acq_len=0;
 volatile int s_acq_len=0;
 int curr_acq=0;
 imu_values* acq = f_acq;
-int* acq_len = f_acq_len;
+volatile int* acq_len = &f_acq_len;
 #endif
 
 #ifdef __H3LIS331DL__
@@ -64,3 +64,4 @@ State stateS = {};
 FligthState state = ON_PAD ;
 LedState ledState;
 void resetCause(uint32_t resetStatusReg);
+int lastMillis;

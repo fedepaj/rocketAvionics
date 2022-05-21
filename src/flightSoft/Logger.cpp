@@ -5,6 +5,7 @@ void Logger::init(){
     if (!sd.begin(SD_CONFIG)) {
       DEBUG("SD initialization failed!");
       sd_ok=false;
+      while(true){}
     }else{
       DEBUG("SD initialized.");
       delay(100);

@@ -83,30 +83,53 @@ void loop() {
     logger.save_states(states, sq_len);
     sq_len=0;
     DEBUG("Dumped states");
+    
     #if defined(__DSO32__) || defined(__ISM330__)
     if(curr_aq==0){
-      aq = &s_aq;
-      aq_len = &s_aq_len;
-      curr_aq=1;
-      logger.save_acc(f_aq, f_aq_len);
-      f_aq_len=0;
+      acq = s_acq;
+      acq_len = &s_acq_len;
+      curr_acq=1;
+      logger.save_acc(f_acq, f_acq_len);
+      f_acq_len=0;
     }else{
-      aq = &f_aq;
-      aq_len = &f_aq_len;
-      curr_aq=0;
-      logger.save_acc(s_aq, s_aq_len);
-      s_aq_len=0;
+      acq = f_acq;
+      acq_len = &f_acq_len;
+      curr_acq=0;
+      logger.save_acc(s_acq, s_acq_len);
+      s_acq_len=0;
     }
-    
-    
     DEBUG("Dumped acc");
-    logger.save_gyro(gq, gq_len);
-    gq_len=0;
+    
+    if(curr_gq==0){
+      gq = s_gq;
+      gq_len = &s_gq_len;
+      curr_gq=1;
+      logger.save_gyro(f_gq, f_gq_len);
+      f_gq_len=0;
+    }else{
+      gq = f_gq;
+      gq_len = &f_gq_len;
+      curr_gq=0;
+      logger.save_gyro(s_gq, s_gq_len);
+      s_gq_len=0;
+    }
     DEBUG("Dumped gyro");
     #endif
+    
     #ifdef __BMP388__
-    logger.save_alti(aq, aq_len);
-    aq_len=0;
+    if(curr_aq==0){
+      aq = s_aq;
+      aq_len = &s_aq_len;
+      curr_aq=1;
+      logger.save_alti(f_aq, f_aq_len);
+      f_aq_len=0;
+    }else{
+      aq = f_aq;
+      aq_len = &f_aq_len;
+      curr_aq=0;
+      logger.save_alti(s_aq, s_aq_len);
+      s_aq_len=0;
+    }
     DEBUG("Dumped alti");
     #endif
   }
@@ -178,9 +201,9 @@ void cLogicCallBack(){
 #ifdef __BMP388__
 void altimeterCB(){
   altiValues_t v = altimeter.measure();
-  if(aq_len<=QSIZE){
-    aq[aq_len]=v;
-    aq_len++;
+  if(*aq_len<=QSIZE){
+    aq[*aq_len]=v;
+    (*aq_len)++;
   }
   //DEBUG("ALTI: " + String(v.toString().c_str())+", "+String(aq_len));
 }
@@ -190,18 +213,18 @@ void altimeterCB(){
 #if defined(__DSO32__) || defined(__ISM330__)
 void gyroCB(){
   imu_values v = imu.measureGyro();
-  if(gq_len<=QSIZE){
-    gq[gq_len]=v;
-    gq_len++;
+  if(*gq_len<=QSIZE){
+    gq[*gq_len]=v;
+    (*gq_len)++;
   }
   //DEBUG("GYRO: " + String(v.toString().c_str())+", "+String(gq_len));
 }
 
 void accCB(){
   imu_values v = imu.measureAcc();
-  if(gq_len<=QSIZE){
-    acq[acq_len]=v;
-    acq_len++;
+  if(*gq_len<=QSIZE){
+    acq[*acq_len]=v;
+    (*acq_len)++;
   }
   //DEBUG("ACC: " + String(v.toString().c_str())+", "+String(acq_len));
 }
