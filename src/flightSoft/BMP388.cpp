@@ -77,6 +77,10 @@ altiValues_t BMP388::measure(){
   float b = 0.0099; //0.0476
   float c = 1 - a - b;
   altiValues.filtAlti = a*prec.filtAlti + b*prec.altitude + c*altiValues.altitude;
+  float aS = 0.91; //0.9048
+  float bS = 0.045; //0.0476
+  float cS = 1 - aS - bS;
+  altiValues.filtAltiS = aS*prec.filtAltiS + bS*prec.altitude + cS*altiValues.altitude;
   /*
   float R=1;
   float Q=1e-05;
@@ -92,7 +96,7 @@ altiValues_t BMP388::measure(){
   */
   //float vel = prec.altitude - altiValues.altitude;
   //float filtVel = prec.filtAlti - altiValues.filtAlti;
-  altiValues.filtVel = prec.filtAlti - altiValues.filtAlti;
+  altiValues.filtVel = (altiValues.filtAlti - prec.filtAlti)/(altiValues.tstp - prec.tstp)*1000;
   
   ALTFILTDEBUG("Altitudine:"+String(altiValues.altitude)+", "+"Filtrata:"+String(altiValues.filtAlti));
   curr=altiValues;

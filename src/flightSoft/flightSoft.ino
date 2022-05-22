@@ -39,7 +39,7 @@ void setup() {
   pinMode(RED_LED,OUTPUT);
   LED00();
   delay(100);
-  removeBeforeFlight();
+  //removeBeforeFlight();
   #ifdef __DEBUG__
   Serial.begin(512000);
   delay(100);
@@ -55,7 +55,7 @@ void setup() {
   setup_sensors();
   
   DEBUG("Sensors setted up.");
-  ledsTimer.begin(ledsCallBack, 1000ms);
+  //ledsTimer.begin(ledsCallBack, 500ms);
   cLogicTimer.begin(cLogicCallBack, 20ms);
 
   
@@ -165,7 +165,8 @@ void cLogicCallBack(){
   */
   switch(state){
     case ON_PAD:
-      if(imu.currAcc.filt >= 50){
+      LED11();
+      if(imu.currAcc.filt >= 30){
         state=ASCENT;
         stateS.state=state;
         stateS.tstp = millis();
@@ -173,7 +174,8 @@ void cLogicCallBack(){
       }
       break;
     case ASCENT:
-      if(altimeter.curr.filtVel <= -1.0){
+      LED10();
+      if(altimeter.curr.filtVel <= -2.0){
         state=DESCENT;
         stateS.state=state;
         stateS.tstp = millis();
@@ -182,6 +184,7 @@ void cLogicCallBack(){
       Serial.println("ASCENT");
       break;
     case DESCENT:
+      LED01();
       if(altimeter.curr.filtVel >= -0.5 && altimeter.curr.filtVel <= 0.5){
         state=LANDED;
         stateS.state=state;
@@ -191,6 +194,7 @@ void cLogicCallBack(){
       //Serial.println("descent");
       break;
     case LANDED:
+      LED00();
       //non fa niente
       //Serial.println("LANDED");
       break;
