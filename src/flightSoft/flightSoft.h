@@ -21,6 +21,24 @@ H3LIS331DL hf_imu;
 Logger logger;
 #endif
 
+#ifdef __TELEMETRY__
+#include "SerialTransfer.h"
+SerialTransfer myTransfer;
+
+typedef struct{
+  char z = '$';
+  float y = 0.1;
+}Msg_uno;
+  
+typedef struct{
+  int a[15];
+  char b = '@';
+}Msg_due;
+
+Msg_uno msg_tipo_uno;
+Msg_due msg_tipo_due;
+#endif
+
 State states[10];
 volatile int sq_len=0;
 

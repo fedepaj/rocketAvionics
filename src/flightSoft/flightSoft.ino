@@ -62,6 +62,10 @@ void setup() {
   cLogicTimer.begin(cLogicCallBack, 20ms);
   pyroTimer.begin(pyroCallBack);
   
+  #ifdef __TELEMETRY__
+  Serial7.begin(115200);
+  myTransfer.begin(Serial7);
+  #endif
   
   #ifdef __BMP388__
   attachInterrupt(digitalPinToInterrupt(BMP388_INT), altimeterCB, RISING);
@@ -78,7 +82,7 @@ void setup() {
   lastMillis=millis();
 }
 
-void loop() {
+void save_logs_with_logger(){
   #ifdef __LOGGING__
   if (millis()-lastMillis>2000){
     lastMillis=millis();
@@ -153,7 +157,48 @@ void loop() {
     DEBUG("Dumped hf acc");
     #endif
   }
+  #endif  
+}
+
+void send_data_to_telemetry(){
+  #ifdef __TELEMETRY__
+
+    msg_tipo_uno.y=(int)state;
+    myTransfer.sendDatum(msg_tipo_uno);
+    
+    #ifdef __BMP388__
+    msg_tipo_uno.y=aq[*aq_len].filtVel;
+    myTransfer.sendDatum(msg_tipo_uno);
+    #endif
+    
+    #if defined(__DSO32__) || defined(__ISM330__)
+    msg_tipo_uno.y=gq[*gq_len].filt;
+    myTransfer.sendDatum(msg_tipo_uno);
+    msg_tipo_uno.y=acq[*acq_len].filt;
+    myTransfer.sendDatum(msg_tipo_uno);
+    #endif  
+
+    #ifdef __H3LIS331DL__
+    msg_tipo_uno.y=hf_acq[*hf_acq_len].filt;
+    myTransfer.sendDatum(msg_tipo_uno);
+    #endif
+    
+    switch(state){
+      case ON_PAD:
+        break;
+      case ASCENT:
+        break;
+      case DESCENT:
+        break;
+      case LANDED:
+        break;
+    }
   #endif
+  }
+
+void loop() {
+  send_data_to_telemetry();
+  save_logs_with_logger();
 }
 
 void ledsCallBack(){

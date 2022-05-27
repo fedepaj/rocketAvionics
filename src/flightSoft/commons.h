@@ -48,7 +48,7 @@
 
 enum LedState {LC0, LC1, LC2, LC3};
 
-enum FligthState {ON_PAD=0, ASCENT,DESCENT ,LANDED};
+enum FligthState {ON_PAD=0, ASCENT, DESCENT, LANDED};
 
 struct State{
   unsigned long tstp = 0;

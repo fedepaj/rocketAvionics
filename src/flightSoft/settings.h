@@ -7,7 +7,7 @@
 #define __H3LIS331DL__
 #define __LOGGING__
 #define __DEBUG__
-
+#define __TELEMETRY__
 #define QSIZE 10000
 
 #endif
