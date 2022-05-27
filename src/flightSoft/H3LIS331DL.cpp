@@ -23,7 +23,7 @@ int H3LIS331DL::init(){
   digitalWrite(H3LIS331DL_CS, HIGH);
   digitalWrite(H3LIS331DL_CS, LOW);
   //pin interrupt sensore
-  byte intBuff[2] = {H3LIS331DL_REG_CTRL3, 0b00010000}; //dataReady su INT2
+  byte intBuff[2] = {H3LIS331DL_REG_CTRL3, 0b00000010}; //dataReady su INT1
   SPI1.transfer(intBuff, 2);
   digitalWrite(H3LIS331DL_CS, HIGH);
   digitalWrite(H3LIS331DL_CS, LOW);
@@ -39,7 +39,7 @@ int H3LIS331DL::init(){
   SPI1.transfer(laller, 3);
   digitalWrite(H3LIS331DL_CS, HIGH);
   SPI1.endTransaction();
-  Serial.println(laller[2]);
+  Serial.println(laller[1]);
 // After the setup we need to do this otherwhise we wont get back any data
 /*
   uint8_t buff[6];
@@ -85,12 +85,15 @@ hf_imu_values H3LIS331DL::measure(){
   values.x = ((float)rawAccX * H3LIS331DL_BIT_2_MSS);
   values.y = ((float)rawAccY * H3LIS331DL_BIT_2_MSS);
   values.z = ((float)rawAccZ * H3LIS331DL_BIT_2_MSS);
-//  Serial.print(buff[1]);
+//  Serial.print(values.x);
 //  Serial.print(" , ");
-//  Serial.println(buff[0]);
-//  Serial.print(buff[3]);
+//  Serial.print(values.y);
 //  Serial.print(" , ");
-//  Serial.println(buff[2]);
+//  Serial.println(values.z);
+  float module = 0;
+  module = values.x*values.x + values.y*values.y + values.z*values.z;
+  module = sqrt(module);
+  Serial.println(module);
   curr = values;
   return values;
 }
