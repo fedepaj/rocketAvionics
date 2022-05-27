@@ -3,6 +3,7 @@
 
 TeensyTimerTool::PeriodicTimer cLogicTimer;
 TeensyTimerTool::PeriodicTimer ledsTimer;
+TeensyTimerTool::OneShotTimer pyroTimer;
 
 void setup_sensors(){
 
@@ -37,6 +38,8 @@ void setup() {
   pinMode(0, INPUT_PULLUP);
   pinMode(GREEN_LED,OUTPUT);
   pinMode(RED_LED,OUTPUT);
+  pinMode(32, OUTPUT);
+  digitalWrite(32,LOW);
   LED00();
   delay(100);
   //removeBeforeFlight();
@@ -57,7 +60,7 @@ void setup() {
   DEBUG("Sensors setted up.");
   //ledsTimer.begin(ledsCallBack, 500ms);
   cLogicTimer.begin(cLogicCallBack, 20ms);
-
+  pyroTimer.begin(pyroCallBack);
   
   
   #ifdef __BMP388__
@@ -176,6 +179,9 @@ void cLogicCallBack(){
     case ASCENT:
       LED10();
       if(altimeter.curr.filtVel <= -2.0){
+        //accendi pyro 4 su pin 32
+        digitalWrite(32,HIGH);
+        pyroTimer.trigger(3000ms);
         state=DESCENT;
         stateS.state=state;
         stateS.tstp = millis();
@@ -200,7 +206,11 @@ void cLogicCallBack(){
       break;
     }
   
-}  
+}
+
+void pyroCallBack(){
+  digitalWrite(32,LOW);
+}
 
 #ifdef __BMP388__
 void altimeterCB(){
