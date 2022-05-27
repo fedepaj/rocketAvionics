@@ -17,7 +17,7 @@ void setup_sensors(){
     #endif
     
     #ifdef __H3LIS331DL__
-    hf_acc.init();
+    hf_imu.init();
     DEBUG("HF imu setted up.");
     #endif
 }
@@ -85,7 +85,7 @@ void loop() {
     DEBUG("Dumped states");
     
     #if defined(__DSO32__) || defined(__ISM330__)
-    if(curr_aq==0){
+    if(curr_acq==0){
       acq = s_acq;
       acq_len = &s_acq_len;
       curr_acq=1;
@@ -131,6 +131,23 @@ void loop() {
       s_aq_len=0;
     }
     DEBUG("Dumped alti");
+    #endif
+    
+    #ifdef __H3LIS331DL__
+    if(curr_hf_acq==0){
+      hf_acq = s_hf_acq;
+      hf_acq_len = &s_hf_acq_len;
+      curr_hf_acq=1;
+      logger.save_hf_acc(f_hf_acq, f_hf_acq_len);
+      f_hf_acq_len=0;
+    }else{
+      hf_acq = f_hf_acq;
+      hf_acq_len = &f_hf_acq_len;
+      curr_hf_acq=0;
+      logger.save_hf_acc(s_hf_acq, s_hf_acq_len);
+      s_hf_acq_len=0;
+    }
+    DEBUG("Dumped hf acc");
     #endif
   }
   #endif
@@ -226,7 +243,7 @@ void gyroCB(){
 
 void accCB(){
   imu_values v = imu.measureAcc();
-  if(*gq_len<=QSIZE){
+  if(*acq_len<=QSIZE){
     acq[*acq_len]=v;
     (*acq_len)++;
   }
@@ -236,13 +253,11 @@ void accCB(){
 
 #ifdef __H3LIS331DL__
 void hf_accCB(){
-  if(buffers.hf_acc.size()==0){
-    hf_imu_values v = {};
-    buffers.hf_acc.push_back(v);
+  hf_imu_values v = hf_imu.measure();
+  if(*hf_acq_len<=QSIZE){
+    hf_acq[*hf_acq_len]=v;
+    (*hf_acq_len)++;
   }
-  hf_imu_values v = hf_acc.measure(buffers.hf_acc.back());
-  DEBUG("HF_ACC: " + String(v.toString().c_str()));
-  buffers.hf_acc.push_back(v);
 }
 #endif
 

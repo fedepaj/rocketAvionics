@@ -14,7 +14,7 @@ DSO32 imu;
 #endif
 
 #ifdef __H3LIS331DL__
-H3LIS331DL hf_acc;
+H3LIS331DL hf_imu;
 #endif
 
 #ifdef __LOGGING__
@@ -56,8 +56,11 @@ volatile int* acq_len = &f_acq_len;
 #ifdef __H3LIS331DL__
 EXTMEM hf_imu_values f_hf_acq[QSIZE];
 EXTMEM hf_imu_values s_hf_acq[QSIZE];
-volatile int hf_acq_len[]={0, 0};
-volatile int curr_hf_acq=0;
+volatile int f_hf_acq_len=0;
+volatile int s_hf_acq_len=0;
+int curr_hf_acq=0;
+hf_imu_values* hf_acq = f_hf_acq;
+volatile int* hf_acq_len = &f_hf_acq_len;
 #endif
 
 State stateS = {};
