@@ -35,8 +35,10 @@ typedef struct {
 class H3LIS331DL
 {
   public:
-    int setup();
-    hf_imu_values measure(hf_imu_values prec);
+    int init();
+    hf_imu_values measure();
+    hf_imu_values curr = {};
+    hf_imu_values prec = {};    
 };
 
 #endif

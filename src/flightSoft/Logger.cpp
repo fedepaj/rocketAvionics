@@ -63,3 +63,9 @@ void Logger::save_alti(altiValues_t v[], int len){
   save<altiValues_t>(v, len, altiFileName);
 }
 #endif
+
+#ifdef __H3LIS331DL__
+void Logger::save_hf_acc(hf_imu_values v[], int len){
+  save<hf_imu_values>(v, len, hfAccFileName);
+}
+#endif

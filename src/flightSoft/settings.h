@@ -4,7 +4,7 @@
 //#define __DSO32__
 #define __ISM330__
 #define __BMP388__
-//#define __H3LIS331DL__
+#define __H3LIS331DL__
 #define __LOGGING__
 #define __DEBUG__
 

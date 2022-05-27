@@ -25,6 +25,9 @@ class Logger{
         #ifdef __BMP388__
         void save_alti(altiValues_t v[], int len);
         #endif
+        #ifdef __H3LIS331DL__
+        void save_hf_acc(hf_imu_values v[], int len);
+        #endif
         
     private:
         
@@ -38,7 +41,7 @@ class Logger{
         String gyroFileName = "gyro_";
         String accFileName = "acc_";
         String altiFileName = "alti_";
-        String highAccFileName = "highAcc_";
+        String hfAccFileName = "hfAcc_";
         
         int file_count = 0;
         int folder_count = 0;

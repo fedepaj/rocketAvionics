@@ -1,6 +1,6 @@
 #include "H3LIS331DL.h"
 
-int H3LIS331DL::setup(){
+int H3LIS331DL::init(){
   pinMode(H3LIS331DL_CS, OUTPUT);
   pinMode(H3LIS331DL_INT, INPUT);
 
@@ -53,7 +53,8 @@ int H3LIS331DL::setup(){
   return (int16_t)laller[1];
 }
 
-hf_imu_values H3LIS331DL::measure(hf_imu_values prec){
+hf_imu_values H3LIS331DL::measure(){
+  prec = curr;
   hf_imu_values values;
   uint8_t buff[6];
   SPI1.beginTransaction(SPISettings(H3LIS331DL_SPI_SPEED, MSBFIRST, SPI_MODE3));
@@ -90,5 +91,6 @@ hf_imu_values H3LIS331DL::measure(hf_imu_values prec){
 //  Serial.print(buff[3]);
 //  Serial.print(" , ");
 //  Serial.println(buff[2]);
+  curr = values;
   return values;
 }
